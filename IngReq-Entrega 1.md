@@ -1,9 +1,10 @@
 # Ingeniería de Requisitos — Entrega 1
 
 ## Equipo
-- [Nombre integrante 1]
-- [Nombre integrante 2]
-- [Nombre integrante 3]
+- Javiera Guerrero Aguilera
+- Benjamin Quezada Marquez
+- Raul Sepulveda Burgos
+- Renato Pereira Bugueño
 
 ## Proyecto
 [Nombre del proyecto y descripción breve]
