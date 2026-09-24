@@ -11,7 +11,7 @@ Como exportador, al ingresar a la pagina quiero acceso a un calendario que me mu
 - ...
  
 ## HU-02
-Como naviera, quiero que se actualicen automaticamente las disponibilidades de espacio en buques en el calendario, para......
+Como naviera, quiero que se actualicen automaticamente las disponibilidades de espacio en buques en el calendario, para evitar la sobreventa de cupos, reducir la gestión manual del inventario de carga y ofrecer información precisa en tiempo real a los clientes.
 
 **Actividad TO-BE asociada:** [actividad del TO-BE]
 
