@@ -19,4 +19,14 @@ Como naviera, quiero que se actualicen automaticamente las disponibilidades de e
 - CA1: [descripción]
 - CA2: [descripción]
 - ...
+ 
+## HU-03
+Como naviera, quiero que cuando se haga una reserva se asigne automaticamente un agente de una empresa a cargo de la carga, para...
+
+**Actividad TO-BE asociada:** [actividad del TO-BE]
+
+**Criterios de aceptación:**
+- CA1: [descripción]
+- CA2: [descripción]
+- ...
 
