@@ -2,6 +2,7 @@
  
 ## HU-01
 Como exportador, al ingresar a la pagina quiero acceso a un calendario que me muestre las disponibilidades en el buque, para....
+
 **Actividad TO-BE asociada:** [actividad del TO-BE, según la tabla de 02-rediseno-to-be.md]
 **Criterios de aceptación:**
 - CA1: [descripción]
