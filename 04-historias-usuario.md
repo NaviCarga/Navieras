@@ -21,7 +21,7 @@ Como naviera, quiero que se actualicen automaticamente las disponibilidades de e
 - ...
  
 ## HU-03
-Como naviera, quiero que cuando se haga una reserva se asigne automaticamente un agente de una empresa a cargo de la carga, para...
+Como naviera, quiero que el sistema asigne automáticamente un agente a cargo de cada reserva ara optimizar la distribución de trabajo, agilizar la coordinación logística del contenedor y asegurar un punto de contacto asignado sin necesidad de gestión manual.
 
 **Actividad TO-BE asociada:** [actividad del TO-BE]
 
