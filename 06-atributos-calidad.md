@@ -9,11 +9,12 @@
 6.  Seguridad.
 7.  Mantenibilidad.
 8.  Flexibilidad
-9.  Inocuidad (Safety).
+9.  Seguridad física / Safety
  
 ## Métricas de los 3 atributos más importantes
 ### Adecuación funcional.
-- Métrica: [descripción de la métrica y cómo se mide]
+- Métrica: Tasa de reservas correctamente validadas.
+- descripcion: 
 ### Compatibilidad.
 - Métrica: [descripción]
 ### Capacidad de interacción.
