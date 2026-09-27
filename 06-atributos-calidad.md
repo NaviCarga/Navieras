@@ -17,10 +17,9 @@
 - Descripcion: Evalúa la capacidad del sistema para calcular correctamente el espacio disponible y evitar reservas que superen la capacidad del buque.
 - Como se mide: Se realizan 100 solicitudes de reserva en distintos buques y fechas. El sistema debe aceptar las reservas cuando existe capacidad suficiente y rechazarlas cuando la capacidad disponible sea insuficiente.
 ### Eficiencia de desempeño.
--Métrica: Tiempo de respuesta del calendario y disponibilidad.
--Descripción: Mide el tiempo que tarda el sistema en mostrar el calendario y actualizar la disponibilidad de espacio después de una consulta o cambio de fecha.
--Cómo se mide: Se registra el tiempo transcurrido desde que el usuario realiza una consulta hasta que el sistema muestra la disponibilidad actualizada.
--Criterio: 100% de reservas correctamente validadas, sin sobreventas ni asignaciones que superen la capacidad disponible.
+- Métrica: Tiempo de respuesta del calendario y disponibilidad.
+- Descripción: Mide el tiempo que tarda el sistema en mostrar el calendario y actualizar la disponibilidad de espacio después de una consulta o cambio de fecha.
+- Cómo se mide: Se registra el tiempo transcurrido desde que el usuario realiza una consulta hasta que el sistema muestra la disponibilidad actualizada.
 ### Compatibilidad.
 - Métrica: Tasa de compatibilidad entre navegadores.
 - Descripción: Evalúa que el sistema funcione correctamente en los principales navegadores web utilizados por los usuarios.
