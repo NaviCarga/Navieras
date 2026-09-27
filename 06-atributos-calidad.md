@@ -12,10 +12,10 @@
 9.  Inocuidad (Safety).
  
 ## Métricas de los 3 atributos más importantes
-### [Atributo 1]
+### Adecuación funcional.
 - Métrica: [descripción de la métrica y cómo se mide]
-### [Atributo 2]
+### Compatibilidad.
 - Métrica: [descripción]
-### [Atributo 3]
+### Capacidad de interacción.
 - Métrica: [descripción]
 
