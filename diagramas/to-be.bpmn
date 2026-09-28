@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_TOBE" targetNamespace="http://bpmn.io/bpmn" exporter="Camunda Modeler" exporterVersion="5.50.1">
+  <collaboration id="Collaboration_TOBE">
+    <participant id="Participant_Forwarder" name="Solicitante (Forwarder)" processRef="Process_Forwarder" />
+    <participant id="Participant_Naviera" name="Naviera" processRef="Process_Naviera" />
+    <messageFlow id="MF1" sourceRef="F_t3" targetRef="N_start" />
+    <messageFlow id="MF2" sourceRef="N_endAlt" targetRef="F_catchAlt" />
+    <messageFlow id="MF3" sourceRef="N_endOK" targetRef="F_catchOK" />
+  </collaboration>
+  <process id="Process_Forwarder" isExecutable="false">
+    <startEvent id="F_start">
+      <outgoing>FF1</outgoing>
+    </startEvent>
+    <task id="F_t1" name="Recibe solicitud de servicio para exportación">
+      <incoming>FF1</incoming>
+      <outgoing>FF2</outgoing>
+    </task>
+    <userTask id="F_t2" name="Consulta disponibilidad y tarifa referencial en el portal">
+      <documentation>Mejoras 1 y 5: control relocation + tecnología integral. El solicitante ve la disponibilidad en línea.</documentation>
+      <incoming>FF2</incoming>
+      <outgoing>FF3</outgoing>
+    </userTask>
+    <sendTask id="F_t3" name="Envía solicitud de booking (formulario estandarizado)">
+      <documentation>Mejoras 2 y 3: contact reduction + interfacing. Una sola interacción, con campos obligatorios.</documentation>
+      <incoming>FF3</incoming>
+      <incoming>FF10</incoming>
+      <outgoing>FF4</outgoing>
+    </sendTask>
+    <eventBasedGateway id="F_ebg">
+      <incoming>FF4</incoming>
+      <outgoing>FF5</outgoing>
+      <outgoing>FF7</outgoing>
+    </eventBasedGateway>
+    <intermediateCatchEvent id="F_catchOK" name="Recibe confirmación y detalles">
+      <incoming>FF5</incoming>
+      <outgoing>FF6</outgoing>
+      <messageEventDefinition />
+    </intermediateCatchEvent>
+    <endEvent id="F_endOK" name="Booking confirmado">
+      <incoming>FF6</incoming>
+    </endEvent>
+    <intermediateCatchEvent id="F_catchAlt" name="Recibe alternativas">
+      <incoming>FF7</incoming>
+      <outgoing>FF8</outgoing>
+      <messageEventDefinition />
+    </intermediateCatchEvent>
+    <userTask id="F_t4" name="Evalúa alternativas">
+      <documentation>Mejora 13: flujo alternativo cuando no hay disponibilidad.</documentation>
+      <incoming>FF8</incoming>
+      <outgoing>FF9</outgoing>
+    </userTask>
+    <exclusiveGateway id="F_g5" name="¿Acepta alternativa?">
+      <incoming>FF9</incoming>
+      <outgoing>FF10</outgoing>
+      <outgoing>FF11</outgoing>
+    </exclusiveGateway>
+    <endEvent id="F_endNo" name="Sin booking">
+      <incoming>FF11</incoming>
+    </endEvent>
+    <sequenceFlow id="FF1" sourceRef="F_start" targetRef="F_t1" />
+    <sequenceFlow id="FF2" sourceRef="F_t1" targetRef="F_t2" />
+    <sequenceFlow id="FF3" sourceRef="F_t2" targetRef="F_t3" />
+    <sequenceFlow id="FF4" sourceRef="F_t3" targetRef="F_ebg" />
+    <sequenceFlow id="FF5" sourceRef="F_ebg" targetRef="F_catchOK" />
+    <sequenceFlow id="FF6" sourceRef="F_catchOK" targetRef="F_endOK" />
+    <sequenceFlow id="FF7" sourceRef="F_ebg" targetRef="F_catchAlt" />
+    <sequenceFlow id="FF8" sourceRef="F_catchAlt" targetRef="F_t4" />
+    <sequenceFlow id="FF9" sourceRef="F_t4" targetRef="F_g5" />
+    <sequenceFlow id="FF10" name="Sí" sourceRef="F_g5" targetRef="F_t3" />
+    <sequenceFlow id="FF11" name="No" sourceRef="F_g5" targetRef="F_endNo" />
+  </process>
+  <process id="Process_Naviera" isExecutable="false">
+    <laneSet id="LaneSet_1">
+      <lane id="Lane_Plataforma" name="Plataforma de booking (sistema)">
+        <flowNodeRef>N_start</flowNodeRef>
+        <flowNodeRef>N_s1</flowNodeRef>
+        <flowNodeRef>N_g1</flowNodeRef>
+        <flowNodeRef>N_g1m</flowNodeRef>
+        <flowNodeRef>N_s2</flowNodeRef>
+        <flowNodeRef>N_g2</flowNodeRef>
+        <flowNodeRef>N_alt</flowNodeRef>
+        <flowNodeRef>N_endAlt</flowNodeRef>
+        <flowNodeRef>N_s3</flowNodeRef>
+        <flowNodeRef>N_pg1</flowNodeRef>
+        <flowNodeRef>N_s4</flowNodeRef>
+        <flowNodeRef>N_g3</flowNodeRef>
+        <flowNodeRef>N_dt</flowNodeRef>
+        <flowNodeRef>N_g3m</flowNodeRef>
+        <flowNodeRef>N_pj</flowNodeRef>
+        <flowNodeRef>N_s5</flowNodeRef>
+        <flowNodeRef>N_g4</flowNodeRef>
+        <flowNodeRef>N_s6</flowNodeRef>
+        <flowNodeRef>N_s7</flowNodeRef>
+        <flowNodeRef>N_endOK</flowNodeRef>
+      </lane>
+      <lane id="Lane_Ejecutivo" name="Ejecutivo comercial">
+        <flowNodeRef>N_et</flowNodeRef>
+      </lane>
+      <lane id="Lane_Encargado" name="Encargado de Espacios">
+        <flowNodeRef>N_e1</flowNodeRef>
+        <flowNodeRef>N_endAlert</flowNodeRef>
+        <flowNodeRef>N_bt</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="N_start" name="Recibe solicitud de booking">
+      <outgoing>NF1</outgoing>
+      <messageEventDefinition />
+    </startEvent>
+    <serviceTask id="N_s1" name="Valida datos de la solicitud y del contrato">
+      <documentation>Mejoras 3 y 6: task elimination. Se elimina la revisión manual de detalles; solo pasan a revisión los casos inconsistentes.</documentation>
+      <incoming>NF1</incoming>
+      <outgoing>NF2</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="N_g1" name="¿Requiere revisión manual?">
+      <incoming>NF2</incoming>
+      <outgoing>NF3</outgoing>
+      <outgoing>NF4</outgoing>
+    </exclusiveGateway>
+    <exclusiveGateway id="N_g1m">
+      <incoming>NF4</incoming>
+      <incoming>NF5</incoming>
+      <outgoing>NF6</outgoing>
+    </exclusiveGateway>
+    <userTask id="N_e1" name="Revisa y corrige solicitud inconsistente (case manager)">
+      <documentation>Mejoras 4 y 14: cola con notificación al encargado; punto único de responsabilidad.</documentation>
+      <incoming>NF3</incoming>
+      <outgoing>NF5</outgoing>
+    </userTask>
+    <serviceTask id="N_s2" name="Verifica disponibilidad preliminar">
+      <documentation>Mejoras 7 y 11: automatización + knock-out/resequencing. La disponibilidad se chequea antes de evaluar tarifa.</documentation>
+      <incoming>NF6</incoming>
+      <outgoing>NF7</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="N_g2" name="¿Hay disponibilidad?">
+      <incoming>NF7</incoming>
+      <outgoing>NF8</outgoing>
+      <outgoing>NF9</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="N_alt" name="Ofrece alternativas (próxima salida, otro puerto, lista de espera)">
+      <documentation>Mejora 13: exception + integration.</documentation>
+      <incoming>NF8</incoming>
+      <incoming>NF22</incoming>
+      <outgoing>NF10</outgoing>
+    </serviceTask>
+    <endEvent id="N_endAlt" name="Envía alternativas al solicitante">
+      <incoming>NF10</incoming>
+      <messageEventDefinition />
+    </endEvent>
+    <serviceTask id="N_s3" name="Reserva temporal del espacio (con vencimiento)">
+      <documentation>Mejora 9: evita conflictos entre solicitudes simultáneas del mismo recurso.</documentation>
+      <incoming>NF9</incoming>
+      <outgoing>NF11</outgoing>
+    </serviceTask>
+    <parallelGateway id="N_pg1">
+      <incoming>NF11</incoming>
+      <outgoing>NF12</outgoing>
+      <outgoing>NF13</outgoing>
+    </parallelGateway>
+    <serviceTask id="N_s4" name="Calcula asignación por prioridad y flexibilidad">
+      <documentation>Mejora 9: triage/order types + flexible assignment. Prioridad por tipo de cliente/contrato, volumen y urgencia (criterios a definir con el negocio).</documentation>
+      <incoming>NF12</incoming>
+      <outgoing>NF19</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="N_g3" name="¿Caso estándar (10 o menos contenedores)?">
+      <incoming>NF13</incoming>
+      <outgoing>NF14</outgoing>
+      <outgoing>NF15</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="N_dt" name="Aplica tarifa por defecto">
+      <incoming>NF14</incoming>
+      <outgoing>NF16</outgoing>
+    </serviceTask>
+    <userTask id="N_et" name="Evalúa tarifa (rangos preaprobados)">
+      <documentation>Mejora 10: exception + empower. Solo los casos excepcionales pasan por evaluación, con autoridad delegada.</documentation>
+      <incoming>NF15</incoming>
+      <outgoing>NF17</outgoing>
+    </userTask>
+    <exclusiveGateway id="N_g3m">
+      <incoming>NF16</incoming>
+      <incoming>NF17</incoming>
+      <outgoing>NF18</outgoing>
+    </exclusiveGateway>
+    <parallelGateway id="N_pj">
+      <documentation>Mejora 12: parallelism.</documentation>
+      <incoming>NF18</incoming>
+      <incoming>NF19</incoming>
+      <outgoing>NF20</outgoing>
+    </parallelGateway>
+    <serviceTask id="N_s5" name="Revalida disponibilidad al confirmar">
+      <documentation>Mejora 8: control addition.</documentation>
+      <incoming>NF20</incoming>
+      <outgoing>NF21</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="N_g4" name="¿Sigue disponible?">
+      <incoming>NF21</incoming>
+      <outgoing>NF22</outgoing>
+      <outgoing>NF23</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="N_s6" name="Asigna buques, contenedores y BL; registra automáticamente">
+      <documentation>Mejora 7: task automation. Elimina el registro manual de asignaciones.</documentation>
+      <incoming>NF23</incoming>
+      <outgoing>NF24</outgoing>
+    </serviceTask>
+    <serviceTask id="N_s7" name="Publica estado y notifica al solicitante">
+      <documentation>Mejoras 5 y 14: estado visible en el portal y seguimiento.</documentation>
+      <incoming>NF24</incoming>
+      <outgoing>NF25</outgoing>
+    </serviceTask>
+    <endEvent id="N_endOK" name="Envía confirmación y detalles">
+      <incoming>NF25</incoming>
+      <messageEventDefinition />
+    </endEvent>
+    <sequenceFlow id="NF1" sourceRef="N_start" targetRef="N_s1" />
+    <sequenceFlow id="NF2" sourceRef="N_s1" targetRef="N_g1" />
+    <sequenceFlow id="NF3" name="Sí" sourceRef="N_g1" targetRef="N_e1" />
+    <sequenceFlow id="NF4" name="No" sourceRef="N_g1" targetRef="N_g1m" />
+    <sequenceFlow id="NF5" sourceRef="N_e1" targetRef="N_g1m" />
+    <sequenceFlow id="NF6" sourceRef="N_g1m" targetRef="N_s2" />
+    <sequenceFlow id="NF7" sourceRef="N_s2" targetRef="N_g2" />
+    <sequenceFlow id="NF8" name="No" sourceRef="N_g2" targetRef="N_alt" />
+    <sequenceFlow id="NF9" name="Sí" sourceRef="N_g2" targetRef="N_s3" />
+    <sequenceFlow id="NF10" sourceRef="N_alt" targetRef="N_endAlt" />
+    <sequenceFlow id="NF11" sourceRef="N_s3" targetRef="N_pg1" />
+    <sequenceFlow id="NF12" sourceRef="N_pg1" targetRef="N_s4" />
+    <sequenceFlow id="NF13" sourceRef="N_pg1" targetRef="N_g3" />
+    <sequenceFlow id="NF14" name="Sí" sourceRef="N_g3" targetRef="N_dt" />
+    <sequenceFlow id="NF15" name="No" sourceRef="N_g3" targetRef="N_et" />
+    <sequenceFlow id="NF16" sourceRef="N_dt" targetRef="N_g3m" />
+    <sequenceFlow id="NF17" sourceRef="N_et" targetRef="N_g3m" />
+    <sequenceFlow id="NF18" sourceRef="N_g3m" targetRef="N_pj" />
+    <sequenceFlow id="NF19" sourceRef="N_s4" targetRef="N_pj" />
+    <sequenceFlow id="NF20" sourceRef="N_pj" targetRef="N_s5" />
+    <sequenceFlow id="NF21" sourceRef="N_s5" targetRef="N_g4" />
+    <sequenceFlow id="NF22" name="No" sourceRef="N_g4" targetRef="N_alt" />
+    <sequenceFlow id="NF23" name="Sí" sourceRef="N_g4" targetRef="N_s6" />
+    <sequenceFlow id="NF24" sourceRef="N_s6" targetRef="N_s7" />
+    <sequenceFlow id="NF25" sourceRef="N_s7" targetRef="N_endOK" />
+    <sequenceFlow id="NF26" sourceRef="N_bt" targetRef="N_endAlert" />
+    <boundaryEvent id="N_bt" cancelActivity="false" attachedToRef="N_e1">
+      <documentation>Mejora 4: alerta si la solicitud no se atiende a tiempo (ya no depende de revisar el correo).</documentation>
+      <outgoing>NF26</outgoing>
+      <timerEventDefinition>
+        <timeDuration xsi:type="tFormalExpression">PT30M</timeDuration>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <endEvent id="N_endAlert" name="Alerta de solicitud sin atender">
+      <incoming>NF26</incoming>
+    </endEvent>
+  </process>
+  <bpmndi:BPMNDiagram id="BpmnDiagram_1">
+    <bpmndi:BPMNPlane id="BpmnPlane_1" bpmnElement="Collaboration_TOBE">
+      <bpmndi:BPMNShape id="Participant_Forwarder_di" bpmnElement="Participant_Forwarder" isHorizontal="true">
+        <omgdc:Bounds x="160" y="40" width="2490" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_start_di" bpmnElement="F_start">
+        <omgdc:Bounds x="212" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_t1_di" bpmnElement="F_t1">
+        <omgdc:Bounds x="280" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_t2_di" bpmnElement="F_t2">
+        <omgdc:Bounds x="420" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_t3_di" bpmnElement="F_t3">
+        <omgdc:Bounds x="560" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_ebg_di" bpmnElement="F_ebg">
+        <omgdc:Bounds x="710" y="125" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_catchOK_di" bpmnElement="F_catchOK">
+        <omgdc:Bounds x="842" y="82" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="805" y="42" width="110" height="36" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_endOK_di" bpmnElement="F_endOK">
+        <omgdc:Bounds x="940" y="82" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="920" y="122" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_catchAlt_di" bpmnElement="F_catchAlt">
+        <omgdc:Bounds x="782" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="765" y="152" width="80" height="36" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_t4_di" bpmnElement="F_t4">
+        <omgdc:Bounds x="880" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_g5_di" bpmnElement="F_g5" isMarkerVisible="true">
+        <omgdc:Bounds x="1030" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1005" y="140" width="100" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="F_endNo_di" bpmnElement="F_endNo">
+        <omgdc:Bounds x="1150" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1132" y="232" width="72" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="FF1_di" bpmnElement="FF1">
+        <omgdi:waypoint x="248" y="150" />
+        <omgdi:waypoint x="280" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF2_di" bpmnElement="FF2">
+        <omgdi:waypoint x="380" y="150" />
+        <omgdi:waypoint x="420" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF3_di" bpmnElement="FF3">
+        <omgdi:waypoint x="520" y="150" />
+        <omgdi:waypoint x="560" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF4_di" bpmnElement="FF4">
+        <omgdi:waypoint x="660" y="150" />
+        <omgdi:waypoint x="710" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF5_di" bpmnElement="FF5">
+        <omgdi:waypoint x="735" y="125" />
+        <omgdi:waypoint x="735" y="100" />
+        <omgdi:waypoint x="842" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF6_di" bpmnElement="FF6">
+        <omgdi:waypoint x="878" y="100" />
+        <omgdi:waypoint x="940" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF7_di" bpmnElement="FF7">
+        <omgdi:waypoint x="735" y="175" />
+        <omgdi:waypoint x="735" y="210" />
+        <omgdi:waypoint x="782" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF8_di" bpmnElement="FF8">
+        <omgdi:waypoint x="818" y="210" />
+        <omgdi:waypoint x="880" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF9_di" bpmnElement="FF9">
+        <omgdi:waypoint x="980" y="210" />
+        <omgdi:waypoint x="1030" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF10_di" bpmnElement="FF10">
+        <omgdi:waypoint x="1055" y="235" />
+        <omgdi:waypoint x="1055" y="285" />
+        <omgdi:waypoint x="590" y="285" />
+        <omgdi:waypoint x="590" y="190" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1062" y="243" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="FF11_di" bpmnElement="FF11">
+        <omgdi:waypoint x="1080" y="210" />
+        <omgdi:waypoint x="1150" y="210" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1105" y="192" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Naviera_di" bpmnElement="Participant_Naviera" isHorizontal="true">
+        <omgdc:Bounds x="160" y="330" width="2490" height="700" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Encargado_di" bpmnElement="Lane_Encargado" isHorizontal="true">
+        <omgdc:Bounds x="190" y="790" width="2460" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Ejecutivo_di" bpmnElement="Lane_Ejecutivo" isHorizontal="true">
+        <omgdc:Bounds x="190" y="650" width="2460" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Plataforma_di" bpmnElement="Lane_Plataforma" isHorizontal="true">
+        <omgdc:Bounds x="190" y="330" width="2460" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_start_di" bpmnElement="N_start">
+        <omgdc:Bounds x="622" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="596" y="562" width="88" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s1_di" bpmnElement="N_s1">
+        <omgdc:Bounds x="700" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g1_di" bpmnElement="N_g1" isMarkerVisible="true">
+        <omgdc:Bounds x="850" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="818" y="470" width="114" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g1m_di" bpmnElement="N_g1m" isMarkerVisible="true">
+        <omgdc:Bounds x="965" y="515" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_e1_di" bpmnElement="N_e1">
+        <omgdc:Bounds x="940" y="830" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s2_di" bpmnElement="N_s2">
+        <omgdc:Bounds x="1050" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g2_di" bpmnElement="N_g2" isMarkerVisible="true">
+        <omgdc:Bounds x="1200" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1180" y="568" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_alt_di" bpmnElement="N_alt">
+        <omgdc:Bounds x="1290" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_endAlt_di" bpmnElement="N_endAlt">
+        <omgdc:Bounds x="1440" y="372" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1408" y="415" width="100" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s3_di" bpmnElement="N_s3">
+        <omgdc:Bounds x="1290" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_pg1_di" bpmnElement="N_pg1">
+        <omgdc:Bounds x="1495" y="515" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s4_di" bpmnElement="N_s4">
+        <omgdc:Bounds x="1580" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g3_di" bpmnElement="N_g3" isMarkerVisible="true">
+        <omgdc:Bounds x="1600" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1555" y="462" width="140" height="48" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_dt_di" bpmnElement="N_dt">
+        <omgdc:Bounds x="1680" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_et_di" bpmnElement="N_et">
+        <omgdc:Bounds x="1680" y="680" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g3m_di" bpmnElement="N_g3m" isMarkerVisible="true">
+        <omgdc:Bounds x="1830" y="515" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_pj_di" bpmnElement="N_pj">
+        <omgdc:Bounds x="1955" y="515" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s5_di" bpmnElement="N_s5">
+        <omgdc:Bounds x="2050" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_g4_di" bpmnElement="N_g4" isMarkerVisible="true">
+        <omgdc:Bounds x="2200" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2185" y="568" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s6_di" bpmnElement="N_s6">
+        <omgdc:Bounds x="2290" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_s7_di" bpmnElement="N_s7">
+        <omgdc:Bounds x="2420" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_endOK_di" bpmnElement="N_endOK">
+        <omgdc:Bounds x="2560" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2530" y="565" width="96" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_endAlert_di" bpmnElement="N_endAlert">
+        <omgdc:Bounds x="1060" y="950" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1115" y="958" width="104" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_bt_di" bpmnElement="N_bt">
+        <omgdc:Bounds x="1022" y="842" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="NF1_di" bpmnElement="NF1">
+        <omgdi:waypoint x="658" y="540" />
+        <omgdi:waypoint x="700" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF2_di" bpmnElement="NF2">
+        <omgdi:waypoint x="800" y="540" />
+        <omgdi:waypoint x="850" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF3_di" bpmnElement="NF3">
+        <omgdi:waypoint x="875" y="565" />
+        <omgdi:waypoint x="875" y="870" />
+        <omgdi:waypoint x="940" y="870" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="882" y="700" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF4_di" bpmnElement="NF4">
+        <omgdi:waypoint x="900" y="540" />
+        <omgdi:waypoint x="965" y="540" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="925" y="520" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF5_di" bpmnElement="NF5">
+        <omgdi:waypoint x="990" y="830" />
+        <omgdi:waypoint x="990" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF6_di" bpmnElement="NF6">
+        <omgdi:waypoint x="1015" y="540" />
+        <omgdi:waypoint x="1050" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF7_di" bpmnElement="NF7">
+        <omgdi:waypoint x="1150" y="540" />
+        <omgdi:waypoint x="1200" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF8_di" bpmnElement="NF8">
+        <omgdi:waypoint x="1225" y="515" />
+        <omgdi:waypoint x="1225" y="390" />
+        <omgdi:waypoint x="1290" y="390" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1232" y="440" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF9_di" bpmnElement="NF9">
+        <omgdi:waypoint x="1250" y="540" />
+        <omgdi:waypoint x="1290" y="540" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1258" y="520" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF10_di" bpmnElement="NF10">
+        <omgdi:waypoint x="1390" y="390" />
+        <omgdi:waypoint x="1440" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF11_di" bpmnElement="NF11">
+        <omgdi:waypoint x="1390" y="540" />
+        <omgdi:waypoint x="1495" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF12_di" bpmnElement="NF12">
+        <omgdi:waypoint x="1520" y="515" />
+        <omgdi:waypoint x="1520" y="390" />
+        <omgdi:waypoint x="1580" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF13_di" bpmnElement="NF13">
+        <omgdi:waypoint x="1545" y="540" />
+        <omgdi:waypoint x="1600" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF14_di" bpmnElement="NF14">
+        <omgdi:waypoint x="1650" y="540" />
+        <omgdi:waypoint x="1680" y="540" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1655" y="520" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF15_di" bpmnElement="NF15">
+        <omgdi:waypoint x="1625" y="565" />
+        <omgdi:waypoint x="1625" y="720" />
+        <omgdi:waypoint x="1680" y="720" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1632" y="600" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF16_di" bpmnElement="NF16">
+        <omgdi:waypoint x="1780" y="540" />
+        <omgdi:waypoint x="1830" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF17_di" bpmnElement="NF17">
+        <omgdi:waypoint x="1780" y="720" />
+        <omgdi:waypoint x="1855" y="720" />
+        <omgdi:waypoint x="1855" y="565" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF18_di" bpmnElement="NF18">
+        <omgdi:waypoint x="1880" y="540" />
+        <omgdi:waypoint x="1955" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF19_di" bpmnElement="NF19">
+        <omgdi:waypoint x="1680" y="390" />
+        <omgdi:waypoint x="1980" y="390" />
+        <omgdi:waypoint x="1980" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF20_di" bpmnElement="NF20">
+        <omgdi:waypoint x="2005" y="540" />
+        <omgdi:waypoint x="2050" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF21_di" bpmnElement="NF21">
+        <omgdi:waypoint x="2150" y="540" />
+        <omgdi:waypoint x="2200" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF22_di" bpmnElement="NF22">
+        <omgdi:waypoint x="2225" y="515" />
+        <omgdi:waypoint x="2225" y="460" />
+        <omgdi:waypoint x="1340" y="460" />
+        <omgdi:waypoint x="1340" y="430" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2232" y="470" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF23_di" bpmnElement="NF23">
+        <omgdi:waypoint x="2250" y="540" />
+        <omgdi:waypoint x="2290" y="540" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2258" y="520" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF24_di" bpmnElement="NF24">
+        <omgdi:waypoint x="2390" y="540" />
+        <omgdi:waypoint x="2420" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF25_di" bpmnElement="NF25">
+        <omgdi:waypoint x="2520" y="540" />
+        <omgdi:waypoint x="2560" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="NF26_di" bpmnElement="NF26">
+        <omgdi:waypoint x="1058" y="860" />
+        <omgdi:waypoint x="1078" y="860" />
+        <omgdi:waypoint x="1078" y="950" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF1_di" bpmnElement="MF1">
+        <omgdi:waypoint x="640" y="190" />
+        <omgdi:waypoint x="640" y="522" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF2_di" bpmnElement="MF2">
+        <omgdi:waypoint x="1458" y="372" />
+        <omgdi:waypoint x="1458" y="308" />
+        <omgdi:waypoint x="800" y="308" />
+        <omgdi:waypoint x="800" y="228" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF3_di" bpmnElement="MF3">
+        <omgdi:waypoint x="2578" y="522" />
+        <omgdi:waypoint x="2578" y="318" />
+        <omgdi:waypoint x="860" y="318" />
+        <omgdi:waypoint x="860" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
