@@ -4,8 +4,7 @@
 [Macro-proceso] → [Proceso específico que se modela]
  
 ## Objetivo de negocio del proceso
-Gestionar la recepción de solicitudes de reserva de espacio en buques portacontenedores para fechas específicas, verificando la disponibilidad de capacidad de carga y confirmando las reservas a los clientes o agentes de carga.
-[Descripción]
+Gestionar la recepción de solicitudes de reserva de espacio en buques portacontenedores para fechas específicas, verificando la disponibilidad de capacidad de carga y confirmando las reservas a los clientes.
  
 ## Participantes y sus objetivos
 | Participante | Objetivo en el proceso |
