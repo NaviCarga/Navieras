@@ -17,8 +17,6 @@
  
 Archivo fuente: [`./diagramas/as-is.bpmn`](./diagramas/as-is.bpmn)
  
-Nota: distingan tareas de usuario, de servicio y manuales con el marcador correspondiente.
- 
 ## Problemas identificados
 - [Problema 1, asociado al objetivo de un participante]
 - [Problema 2]
