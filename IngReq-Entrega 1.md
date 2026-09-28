@@ -7,7 +7,7 @@
 - Renato Pereira Bugueño
 
 ## Proyecto
-[Nombre del proyecto y descripción breve]
+rena chupalo [Nombre del proyecto y descripción breve]
 
 ## Índice de documentos
 1. [Proceso AS-IS](./01-proceso-as-is.md)
