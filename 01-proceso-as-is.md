@@ -18,6 +18,8 @@ Gestionar la recepción de solicitudes de reserva de espacio en buques portacont
 Archivo fuente: [`./diagramas/as-is.bpmn`](./diagramas/as-is.bpmn)
  
 ## Problemas identificados
-- 
-- [Problema 2]
+- Dependencia de que el encargado revise su correo. La solicitud de tarifa y la confirmación viajan por correo, así que el tiempo de respuesta es impredecible y no hay alerta si algo queda sin atender.
+- Solicitudes simultáneas del mismo recurso sin regla de priorización. Es el principal riesgo de conflicto en el uso de espacios.
+- La disponibilidad se revisa demasiado tarde. Se cotiza y se gestiona el contrato antes de saber si hay espacio, y ese esfuerzo se pierde si no lo hay.
+
 
