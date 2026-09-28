@@ -10,7 +10,7 @@ Gestionar la recepción de solicitudes de reserva de espacio en buques portacont
 | Participante | Objetivo en el proceso |
 |---------------|------------------------|
 |**Solicitante (Forwarder)** | Enviar la solicitud de servicio de exportación, obtener la vista previa de la tarifasegún la cantidad de contenedores y recibir la confirmación final de *booking* con los detalles del servicio. |
-| **Naviera**|Revisar las solicitudes de tarifa, evaluar el costo según el volumen de contenedores, verificar la disponibilidad de buques y espacio de contenedores, y confirmar la asignación o informar la no disponibilidad.] |
+| **Naviera**| Revisar las solicitudes de tarifa, evaluar el costo según el volumen de contenedores, verificar la disponibilidad de buques y espacio de contenedores, y confirmar la asignación o informar la no disponibilidad. |
  
 ## Diagrama AS-IS
 ![Proceso AS-IS](./diagramas/as-is.png)
