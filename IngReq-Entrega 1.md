@@ -7,7 +7,7 @@
 - Renato Pereira Bugueño
 
 ## Proyecto
-naviera guerrero, naviera guerrero es una plataforma web desarrollada para optimizar la gestión de reservas de espacio y asignación de contenedores en buques mercantes. El sistema automatiza el cálculo de tarifas, valida en tiempo real la capacidad disponible del buque y ofrece un calendario interactivo por fechas, permitiendo a los forwarders y clientes consultar la disponibilidad de flota, cotizar y confirmar reservas de embarque de manera inmediata y sin riesgos de sobrecupo.
+Naviera Guerrero es una plataforma web desarrollada para optimizar la gestión de reservas de espacio y la asignación de contenedores en buques mercantes. El sistema automatiza el cálculo de tarifas, valida en tiempo real la capacidad disponible del buque y ofrece un calendario interactivo por fechas, permitiendo a los forwarders y clientes consultar la disponibilidad de la flota, cotizar y confirmar reservas de embarque de manera inmediata y sin riesgos de sobrecupo.
 
 ## Índice de documentos
 1. [Proceso AS-IS](./01-proceso-as-is.md)
