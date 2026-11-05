@@ -33,3 +33,13 @@ Como administrador de la naviera quiero que el sistema asigne automáticamente u
 * CA1: El sistema asigna un agente responsable basándose en criterios preconfigurados (como zona geográfica, tipo de naviera o carga asignada).
 * CA2: El agente asignado recibe una notificación automática en su panel con los detalles de la reserva y el cliente asignado para su seguimiento.
 
+## HU-04
+
+Como Exportador / Forwarder, quiero solicitar una reserva de espacio para mi carga en un viaje disponible, para asegurar el cupo de mis contenedores y obtener la confirmación formal de embarque.
+
+**Actividad TO-BE asociada:** Registro unificado y automatizado de la solicitud de booking
+
+**Criterios de aceptación:**
+- CA1: El usuario puede seleccionar la fecha del viaje en el calendario, ingresar la cantidad de contenedores (TEUs) y asociar su número de contrato vigente.
+- CA2: El sistema debe validar que la cantidad de contenedores solicitada no supere la capacidad disponible del buque para esa fecha, confirmando la reserva si hay espacio suficiente.
+
