@@ -1,42 +1,84 @@
 # Criterios de aceptación (Gherkin)
  
-## HU-01 — Consulta de disponibilidad de espacio mediante calendario por fechas
-Historia: Como Forwarder, quiero consultar la disponibilidad de espacio disponible y las fechas de salida de los buques a través de un calendario interactivo, para planificar y asegurar mis embarques de exportación a tiempo.
+## HU-01 — Consulta de itinerarios y disponibilidad de espacio en buques
+Historia: Como exportador, quiero consultar los itinerarios y la disponibilidad de espacio en los buques según ruta y tipo de contenedor, para conocer en tiempo real las fechas de zarpe y cupos disponibles sin depender de gestiones manuales.
  
 ```gherkin
-Característica: Consulta de disponibilidad de espacio por fecha
+Característica:Consulta de disponibilidad de espacio e itinerarios de buques
+  Escenario: Consulta exitosa de itinerarios con cupo disponible según ruta y contenedor
+    Dado que existen viajes programados entre el puerto de origen "San Antonio" y el puerto de destino "Shanghái"
+    Y el buque asignado al viaje cuenta con una disponibilidad de 25 contenedores de tipo "40HQ"
+    Cuando el exportador consulta la disponibilidad para la ruta "San Antonio" a "Shanghái" requiriendo contenedores "40HQ"
+    Entonces se informa el itinerario del viaje con sus fechas de zarpe, arribo estimado y nombre del buque
+    Y se confirma la disponibilidad de 25 cupos para contenedores de tipo "40HQ"
  
-  Escenario: Consulta exitosa de disponibilidad para una fecha con cupo
-    Dado que existe un buque programado para la fecha "2026-11-15" con capacidad disponible de 150 TEUs
-    Cuando el Forwarder solicita consultar la disponibilidad de carga para la fecha "2026-11-15"
-    Entonces el sistema presenta el estado del buque indicando un total de 150 TEUs disponibles para reserva
-    Y confirma que la fecha se encuentra abierta para recibir solicitudes de booking
- 
-  Escenario: Consulta de fecha sin disponibilidad de espacio (buque completo)
-    Dado que el buque asignado para la fecha "2026-11-20" tiene su capacidad de carga al 100% de ocupación
-    Cuando el Forwarder solicita consultar la disponibilidad de carga para la fecha "2026-11-20"
-    Entonces el sistema informa que no existe espacio disponible para embarque en la fecha seleccionada
-    Y sugiere las próximas fechas de salida con espacio disponible más cercanas
+  Escenario: Consulta de ruta o tipo de contenedor sin cupos disponibles
+    Dado que existe un viaje programado entre "Valparaíso" y "Rotterdam"
+    Y el buque tiene 0 cupos disponibles para contenedores refrigerados de tipo "40RF"
+    Cuando el exportador consulta la disponibilidad entre "Valparaíso" y "Rotterdam" para contenedores "40RF"
+    Entonces se informa que el viaje no cuenta con capacidad disponible para el tipo de contenedor solicitado
+    Y no se habilita el viaje para nuevas solicitudes de reserva de ese tipo de contenedor
 ```
  
-## HU-02 — Cotización y tarificación automática inmediata
- Historia: Como Forwarder, quiero obtener la cotización automática del flete al ingresar la cantidad de contenedores requeridos, para conocer el costo del servicio sin esperar evaluaciones manuales.
-
-Gherkin
+## HU-02 — Actualización automática del inventario de espacio por reservas
+ Historia:Como naviera, quiero que se actualice automáticamente la disponibilidad de espacio de los buques ante cada confirmación o cancelación de reserva, para reflejar de forma inmediata el cupo real y evitar sobreventas.
+ 
 ```gherkin
-Característica: Cotización y tarificación automática de espacio
- 
-  Escenario: Tarificación automática para una solicitud estándar (10 o menos contenedores)
-    Dado que la tarifa base configurada por contenedor es de 1.200 USD
-    Cuando el Forwarder ingresa una solicitud de espacio para 5 contenedores
-    Entonces el sistema aplica la tarifa base por defecto
-    Y calcula un costo total de cotización de 6.000 USD de forma inmediata
- 
-  Escenario: Tarificación automática con descuento por volumen (más de 10 contenedores)
-    Dado que existe una regla de tarificación por volumen que aplica un 10% de descuento para solicitudes superiores a 10 contenedores
-    Cuando el Forwarder ingresa una solicitud de espacio para 15 contenedores con tarifa base de 1.200 USD
-    Entonces el sistema aplica automáticamente el descuento por volumen correspondiente
-    Y calcula un costo total de cotización de 16.200 USD sin requerir evaluación manual
+Característica: Sincronización automática del inventario de espacio del buque
+
+  Escenario: Descuento automático de cupo al confirmar una reserva
+    Dado que un viaje programado cuenta con una capacidad disponible de 50 TEUs
+    Y existe una solicitud de reserva válida por un total de 10 TEUs para dicho viaje
+    Cuando la reserva cambia su estado a "Confirmada"
+    Entonces la capacidad disponible del viaje se reduce automáticamente a 40 TEUs
+    Y el cupo de 10 TEUs queda comprometido y asociado a la reserva confirmada
+
+  Escenario: Rechazo de confirmación de reserva por capacidad insuficiente (prevención de sobreventa)
+    Dado que un viaje programado cuenta únicamente con 4 TEUs de capacidad disponible
+    Cuando se intenta confirmar una solicitud de reserva por 6 TEUs para ese mismo viaje
+    Entonces se rechaza la confirmación de la reserva por falta de capacidad en el buque
+    Y la capacidad disponible del viaje se mantiene en 4 TEUs sin alteraciones
+
+  Escenario: Restitución automática de cupo por cancelación dentro del plazo permitido
+    Dado que un viaje tiene una capacidad disponible de 30 TEUs
+    Y existe una reserva "Confirmada" de 8 TEUs cuyo zarpe se encuentra dentro del plazo permitido de anulación
+    Cuando la reserva cambia su estado a "Cancelada"
+    Entonces la capacidad disponible del viaje aumenta automáticamente a 38 TEUs
+```
+## HU-03 — Asignación automática de agente operativo a reserva confirmada
+Historia: Como administrador de la naviera, quiero que se asigne automáticamente un agente operativo a cargo de cada reserva confirmada, para agilizar la gestión interna y asegurar un responsable directo para el exportador.
+```gherkin
+Característica: Asignación automática de agente operativo a reservas confirmadas
+
+  Escenario: Asignación exitosa de agente según reglas de ruta y carga de trabajo
+    Dado que existen agentes operativos habilitados para la zona geográfica "Asia-Pacífico" con capacidad de atención disponible
+    Cuando una reserva con destino a la zona "Asia-Pacífico" cambia su estado a "Confirmada"
+    Entonces se asigna automáticamente a la reserva el agente habilitado con menor cantidad de reservas activas
+    Y se notifica al agente asignado y al exportador los datos de la reserva y del responsable operativo
+
+  Escenario: Escalamiento por falta de agentes disponibles con cupo de atención en la zona
+    Dado que todos los agentes operativos de la zona "Europa" han alcanzado su límite máximo de reservas activas
+    Cuando una reserva con destino a la zona "Europa" cambia su estado a "Confirmada"
+    Entonces la reserva queda registrada en estado "Confirmada sin agente asignado"
+    Y se emite una alerta de asignación manual pendiente dirigida al administrador de la naviera
+```
+## HU-04 — Solicitud y confirmación de reserva de espacio (Booking) con validación externa
+Historia: Como exportador, quiero solicitar una reserva de espacio para mi carga en un viaje disponible, para asegurar el cupo de mis contenedores y obtener la confirmación formal de embarque.
+```gherkin
+Característica: Procesamiento y confirmación de solicitud de reserva de espacio
+
+  Escenario: Confirmación exitosa de solicitud de reserva con cliente y carga validados
+    Dado que el exportador tiene vigencia comercial activa y sin bloqueos crediticios
+    Y el viaje seleccionado dispone de al menos 5 cupos para contenedores "20GP"
+    Cuando el exportador registra una solicitud de reserva por 5 contenedores "20GP" indicando el detalle de la mercancía
+    Entonces la reserva se registra en estado "Confirmada" con un código único de reserva (Booking)
+    Y se emite el comprobante de confirmación de reserva al exportador
+
+  Escenario: Rechazo de solicitud de reserva por bloqueo comercial o documental del exportador
+    Dado que el exportador registra un bloqueo vigente en su evaluación comercial o aduanera
+    Y el viaje seleccionado dispone de cupos suficientes para la carga solicitada
+    Cuando el exportador registra una solicitud de reserva de espacio
+    Entonces la solicitud de reserva cambia a estado "Rechazada"
+    Y se informa al exportador el motivo del rechazo sin descontar cupos del inventario del viaje
 ```
 
-[Misma estructura. Mínimo 4 historias.]
