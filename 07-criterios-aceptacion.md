@@ -19,5 +19,24 @@ Característica: Consulta de disponibilidad de espacio por fecha
     Y sugiere las próximas fechas de salida con espacio disponible más cercanas
 ```
  
-## HU-02 — [Título breve de la historia]
+## HU-02 — Cotización y tarificación automática inmediata
+ Historia: Como Forwarder, quiero obtener la cotización automática del flete al ingresar la cantidad de contenedores requeridos, para conocer el costo del servicio sin esperar evaluaciones manuales.
+
+Gherkin
+```gherkin
+Característica: Cotización y tarificación automática de espacio
+ 
+  Escenario: [Escenario principal]
+    Dado [contexto inicial, en lenguaje del negocio]
+    Y [otro dato del contexto, si hace falta]
+    Cuando [acción del rol]
+    Entonces [resultado observable]
+    Y [otro resultado observable, si hace falta]
+ 
+  Escenario: [Escenario alternativo o de error]
+    Dado [contexto]
+    Cuando [acción]
+    Entonces [resultado esperado]
+```
+
 [Misma estructura. Mínimo 4 historias.]
