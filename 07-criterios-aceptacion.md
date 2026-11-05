@@ -81,7 +81,6 @@ Característica: Procesamiento y confirmación de solicitud de reserva de espaci
     Entonces la solicitud de reserva cambia a estado "Rechazada"
     Y se informa al exportador el motivo del rechazo sin descontar cupos del inventario del viaje
 ```
-
     Y la solicitud todavía no ha sido atendida
     Cuando el sistema verifica las solicitudes pendientes
     Entonces genera una alerta para el encargado de espacios
