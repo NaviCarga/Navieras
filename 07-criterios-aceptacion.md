@@ -81,4 +81,32 @@ Característica: Procesamiento y confirmación de solicitud de reserva de espaci
     Entonces la solicitud de reserva cambia a estado "Rechazada"
     Y se informa al exportador el motivo del rechazo sin descontar cupos del inventario del viaje
 ```
+## HU-05 — Revisión manual y alertas de solicitudes inconsistentes
+Historia: Como encargado de espacios de la naviera (case manager), quiero recibir las solicitudes de Booking que presenten inconsistencias en una cola de revisión manual y recibir una notificación cuando sean derivadas, para poder revisarlas y corregirlas antes de continuar con su procesamiento.
+```gherkin
+Característica: Gestión de solicitudes inconsistentes mediante revisión manual
+
+  Escenario: Derivación de una solicitud inconsistente a revisión manual
+    Dado que el exportador envía una solicitud de Booking
+    Y el sistema detecta inconsistencias durante la validación automática
+    Cuando finaliza la validación de la solicitud
+    Entonces la solicitud cambia al estado "Pendiente de revisión manual"
+    Y se incorpora a la cola de revisión del encargado de espacios
+    Y se notifica al encargado sobre la nueva solicitud pendiente
+
+  Escenario: Corrección de una solicitud pendiente de revisión manual
+    Dado que existe una solicitud en estado "Pendiente de revisión manual"
+    Y el encargado de espacios accede a la cola de revisión
+    Cuando revisa y corrige los datos inconsistentes
+    Y la solicitud supera nuevamente las validaciones correspondientes
+    Entonces la solicitud puede continuar con el procesamiento del Booking
+
+  Escenario: Generación de alerta por solicitud no atendida
+    Dado que existe una solicitud en la cola de revisión manual
+    Y ha transcurrido el plazo de atención configurado
+    Y la solicitud todavía no ha sido atendida
+    Cuando el sistema verifica las solicitudes pendientes
+    Entonces genera una alerta para el encargado de espacios
+    Y la solicitud permanece identificada como pendiente de revisión
+```
 
