@@ -35,7 +35,7 @@ Como administrador de la naviera quiero que el sistema asigne automáticamente u
 
 ## HU-04
 
-Como Exportador / Forwarder, quiero solicitar una reserva de espacio para mi carga en un viaje disponible, para asegurar el cupo de mis contenedores y obtener la confirmación formal de embarque.
+Como Exportador, quiero solicitar una reserva de espacio para mi carga en un viaje disponible, para asegurar el cupo de mis contenedores y obtener la confirmación formal de embarque.
 
 **Actividad TO-BE asociada:** Registro unificado y automatizado de la solicitud de booking
 
