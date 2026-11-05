@@ -1,3 +1,4 @@
+
 # Diagramas de secuencia de sistema
 
 ## DSS-01 — Consultar disponibilidad de viajes y contenedores
@@ -31,3 +32,4 @@ Variantes representadas:
 - Definición de tarifa y cálculo de asignación en paralelo.
 - Revalidación de disponibilidad antes de confirmar.
 - Confirmación o rechazo de la solicitud.
+
