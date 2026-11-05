@@ -26,17 +26,17 @@ Gherkin
 ```gherkin
 Característica: Cotización y tarificación automática de espacio
  
-  Escenario: [Escenario principal]
-    Dado [contexto inicial, en lenguaje del negocio]
-    Y [otro dato del contexto, si hace falta]
-    Cuando [acción del rol]
-    Entonces [resultado observable]
-    Y [otro resultado observable, si hace falta]
+  Escenario: Tarificación automática para una solicitud estándar (10 o menos contenedores)
+    Dado que la tarifa base configurada por contenedor es de 1.200 USD
+    Cuando el Forwarder ingresa una solicitud de espacio para 5 contenedores
+    Entonces el sistema aplica la tarifa base por defecto
+    Y calcula un costo total de cotización de 6.000 USD de forma inmediata
  
-  Escenario: [Escenario alternativo o de error]
-    Dado [contexto]
-    Cuando [acción]
-    Entonces [resultado esperado]
+  Escenario: Tarificación automática con descuento por volumen (más de 10 contenedores)
+    Dado que existe una regla de tarificación por volumen que aplica un 10% de descuento para solicitudes superiores a 10 contenedores
+    Cuando el Forwarder ingresa una solicitud de espacio para 15 contenedores con tarifa base de 1.200 USD
+    Entonces el sistema aplica automáticamente el descuento por volumen correspondiente
+    Y calcula un costo total de cotización de 16.200 USD sin requerir evaluación manual
 ```
 
 [Misma estructura. Mínimo 4 historias.]
