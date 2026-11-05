@@ -1,0 +1,46 @@
+
+@startuml
+title EST-01 - Ciclo de vida de una Reserva (Booking)
+
+[*] --> Recibida : enviar solicitud
+
+Recibida --> Validando : iniciar validación
+
+Validando --> RevisionManual : datos inconsistentes
+Validando --> Rechazada : contrato inválido
+Validando --> VerificandoDisponibilidad : datos válidos
+
+RevisionManual --> Validando : encargado corrige solicitud
+RevisionManual --> Rechazada : solicitud no aprobada
+
+VerificandoDisponibilidad --> Rechazada : no existe disponibilidad
+VerificandoDisponibilidad --> ReservaTemporal : hay disponibilidad\n/ bloquear espacio temporalmente
+
+ReservaTemporal --> Procesando : iniciar tarifa y asignación
+
+state Procesando {
+  state "Definición de tarifa" as Tarifa
+  state "Cálculo de asignación" as Asignacion
+
+  [*] --> Tarifa
+  [*] --> Asignacion
+
+  Tarifa --> [*] : tarifa definida
+  Asignacion --> [*] : asignación calculada
+}
+
+Procesando --> Revalidando : tarifa y asignación listas
+
+Revalidando --> Confirmada : disponibilidad vigente\n/ registrar asignación y BL
+Revalidando --> Rechazada : disponibilidad insuficiente
+
+ReservaTemporal --> Vencida : vence el plazo sin confirmación\n/ liberar espacio y notificar
+
+Confirmada --> Cancelada : cancelar dentro del plazo\n/ liberar espacio
+
+Confirmada --> [*]
+Rechazada --> [*]
+Vencida --> [*]
+Cancelada --> [*]
+
+@enduml
