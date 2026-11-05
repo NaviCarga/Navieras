@@ -1,0 +1,27 @@
+@startuml dss-01
+autonumber
+actor Forwarder
+participant ":SistemaNaviCarga" as Sistema
+
+title DSS-01 — Consulta de Disponibilidad y Reserva de Espacio
+
+Forwarder -> Sistema: consultarDisponibilidad(fechaSalida, puertoOrigen, puertoDestino)
+activate Sistema
+Sistema --> Forwarder: presentaDisponibilidad(listaViajes, capacidadDisponibleTEU)
+deactivate Sistema
+
+Forwarder -> Sistema: solicitarCotización(codigoViaje, cantidadContenedores, tipoContenedor)
+activate Sistema
+Sistema --> Forwarder: muestraCotizacion(montoTotal, tarifaBase, porcentajeDescuento)
+deactivate Sistema
+
+Forwarder -> Sistema: confirmarSolicitudReserva(codigoViaje, cantidadContenedores, numeroContrato)
+activate Sistema
+
+alt Espacio Suficiente (Capacidad Disponible >= Cantidad Solicitada)
+    Sistema --> Forwarder: confirmaReserva(codigoBooking, estadoReserva="Confirmada")
+else Capacidad Insuficiente / Sobrecupo
+    Sistema --> Forwarder: rechazaReserva(motivo="Capacidad sobrepasada", cupoDisponibleActual)
+end
+deactivate Sistema
+@enduml
