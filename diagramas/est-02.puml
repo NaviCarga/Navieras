@@ -1,0 +1,19 @@
+
+@startuml
+title EST-02 - Ciclo de vida de un CupoContenedor
+
+[*] --> Disponible
+
+Disponible --> ReservadoTemporalmente : crear reserva temporal\n[cantidad disponible suficiente]\n/ descontar temporalmente cupos
+
+ReservadoTemporalmente --> Comprometido : confirmar Booking\n/ registrar asignación
+
+ReservadoTemporalmente --> Disponible : vencer plazo\n/ liberar cupos y notificar
+
+ReservadoTemporalmente --> Disponible : cancelar solicitud\n/ liberar cupos
+
+Comprometido --> Disponible : cancelar reserva\n[dentro del plazo permitido]\n/ reincorporar cupos
+
+Comprometido --> [*] : finalizar gestión del viaje
+
+@enduml
