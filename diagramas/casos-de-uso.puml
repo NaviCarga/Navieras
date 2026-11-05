@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+' Actores Humanos (Izquierda)
+actor "Empresa Exportadora\n(Exportador)" as Exportador
+actor "Agente Operativo" as Agente
+actor "Administrador de Naviera" as Admin
+
+' Sistemas Externos (Derecha)
+actor "Sistema Central de Flota\n(ERP Naviero)" as ERP <<sistema externo>>
+actor "Sistema de Evaluación\nComercial y Aduana" as Aduana <<sistema externo>>
+
+rectangle "Sistema de Gestión de Reservas e Itinerarios Navieros" {
+  usecase "CU-01: Consultar viajes y cupos\nde contenedor por puerto origen/destino" as CU01
+  usecase "CU-02: Solicitar reserva de espacio\ncon detalle de contenedores" as CU02
+  usecase "CU-03: Cancelar reserva dentro\ndel plazo máximo" as CU03
+  usecase "CU-04: Actualizar capacidad disponible\n(TEU) y cupos del viaje" as CU04
+  usecase "CU-05: Asignar agente operativo a reserva\nsegún zona geográfica y límite activo" as CU05
+  usecase "CU-06: Gestionar reserva sin agente\npor límite máximo alcanzado" as CU06
+}
+
+' Relaciones de Actores Humanos
+Exportador --> CU01
+Exportador --> CU02
+Exportador --> CU03
+
+Agente --> CU05
+Admin --> CU05
+Admin --> CU06
+
+' Relaciones include y extend
+CU02 ..> CU04 : <<include>>
+CU03 ..> CU04 : <<include>>
+CU02 ..> CU05 : <<include>>
+CU06 ..> CU05 : <<extend>>\n[reservasActivasActuales ==\nlimiteMaximoReservas]
+
+' Relaciones con Sistemas Externos
+CU01 --> ERP
+CU04 --> ERP
+CU02 --> Aduana
+@enduml
