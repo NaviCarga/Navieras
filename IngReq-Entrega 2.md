@@ -12,11 +12,11 @@ Naviera Guerrero es una plataforma web desarrollada para optimizar la gestión d
 | Documento | Ítem de rúbrica | Responsable(s) |
 |-----------|-----------------|----------------|
 | 07-criterios-aceptacion.md | 1 | Benjamín Quezada|
-| 08-modelo-dominio.md | 2 | [Benjamín Quezada|
-| 09-casos-de-uso.md | 3 | [Javiera Guerrero|
+| 08-modelo-dominio.md | 2 | Benjamín Quezada|
+| 09-casos-de-uso.md | 3 | Javiera Guerrero|
 | 10-diagramas-secuencia.md | 4 | Renato Pereira|
-| 11-diagramas-estado.md | 5 | [Raúl Sepúlveda] |
-| 12-trazabilidad.md | 6 | [Javiera Guerrero, Renato Pereira] |
+| 11-diagramas-estado.md | 5 | Raúl Sepúlveda |
+| 12-trazabilidad.md | 6 | Javiera Guerrero, Renato Pereira |
  
 ## Uso de IA generativa
 Uso de IA para revisar definiciones de conceptos, revisión de desarrollo y creación de prompt para generar diagramas en PlantUML.
