@@ -1,27 +1,31 @@
-@startuml dss-01
-autonumber
-actor Forwarder
-participant ":SistemaNaviCarga" as Sistema
 
-title DSS-01 — Consulta de Disponibilidad y Reserva de Espacio
+@startuml
+title DSS-01 - Consultar disponibilidad de viajes y contenedores
 
-Forwarder -> Sistema: consultarDisponibilidad(fechaSalida, puertoOrigen, puertoDestino)
-activate Sistema
-Sistema --> Forwarder: presentaDisponibilidad(listaViajes, capacidadDisponibleTEU)
-deactivate Sistema
+actor "Exportador" as Exportador
+participant "Portal Web Naviera" as Portal
+participant "Sistema de Disponibilidad" as Disponibilidad
+participant "Sistema Central de Flota\n(ERP Naviero)" as ERP
 
-Forwarder -> Sistema: solicitarCotización(codigoViaje, cantidadContenedores, tipoContenedor)
-activate Sistema
-Sistema --> Forwarder: muestraCotizacion(montoTotal, tarifaBase, porcentajeDescuento)
-deactivate Sistema
+Exportador -> Portal: Ingresar criterios de búsqueda
+activate Portal
 
-Forwarder -> Sistema: confirmarSolicitudReserva(codigoViaje, cantidadContenedores, numeroContrato)
-activate Sistema
+Portal -> Disponibilidad: Consultar viajes y cupos\n(origen, destino, tipo contenedor)
+activate Disponibilidad
 
-alt Espacio Suficiente (Capacidad Disponible >= Cantidad Solicitada)
-    Sistema --> Forwarder: confirmaReserva(codigoBooking, estadoReserva="Confirmada")
-else Capacidad Insuficiente / Sobrecupo
-    Sistema --> Forwarder: rechazaReserva(motivo="Capacidad sobrepasada", cupoDisponibleActual)
+Disponibilidad -> ERP: Solicitar itinerarios y capacidad
+activate ERP
+ERP --> Disponibilidad: Retornar viajes y cupos disponibles
+deactivate ERP
+
+Disponibilidad --> Portal: Entregar resultados de consulta
+deactivate Disponibilidad
+
+alt Existen viajes con disponibilidad
+    Portal --> Exportador: Mostrar viajes, fechas,\nbuques y cupos disponibles
+else No existen cupos disponibles
+    Portal --> Exportador: Informar que no hay\ncapacidad para los criterios solicitados
 end
-deactivate Sistema
+
+deactivate Portal
 @enduml
