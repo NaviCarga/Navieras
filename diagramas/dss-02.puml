@@ -1,0 +1,26 @@
+@startuml dss-02
+autonumber
+actor Forwarder
+participant ":SistemaNaviCarga" as Sistema
+participant ":ServicioCorreo" as Correo
+
+title DSS-02 — Procesamiento de Booking y Notificación de Confirmación
+
+Forwarder -> Sistema: solicitarEmisionComprobante(codigoBooking)
+activate Sistema
+Sistema -> Sistema: generarComprobanteDigital(codigoBooking)
+
+Sistema -> Correo: enviarNotificacionBooking(correoContacto, codigoBooking, detalleServicio)
+activate Correo
+
+alt Envío de Correo Exitoso
+    Correo --> Sistema: confirmaciónEntrega(status=200 OK)
+    Sistema --> Forwarder: notificaEmisionExitosa(codigoBooking, mensaje="Comprobante enviado por correo")
+else Fallo de Conexión en Servicio de Correo
+    Correo --> Sistema: errorEnvio(status=500 Service Unavailable)
+    deactivate Correo
+    Sistema -> Sistema: registrarReintentoPendiente(codigoBooking)
+    Sistema --> Forwarder: notificaEmisionConAdvertencia(codigoBooking, mensaje="Booking confirmado. Comprobante disponible para descarga directa")
+end
+deactivate Sistema
+@enduml
