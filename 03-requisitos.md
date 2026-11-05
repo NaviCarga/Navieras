@@ -31,6 +31,7 @@ Las actividades TO-BE citadas corresponden a la tabla "Actividades que cambian d
 | RP-23 | El servicio debe estar disponible de forma permanente, sin depender del horario o de la revisión del correo por parte del encargado | No funcional | Envía solicitud de booking (formulario estandarizado) / Revisa y corrige solicitud inconsistente (case manager) |
 | RP-24 | El acceso debe estar controlado por rol: el solicitante solo ve sus propias solicitudes y contratos, y solo el personal autorizado modifica asignaciones y tarifas | No funcional | Consulta disponibilidad y tarifa referencial en el portal / Publica estado y notifica al solicitante |
 | RP-25 | Las reglas de negocio (criterios de prioridad, rangos preaprobados, umbral de caso estándar y plazo de vencimiento de la reserva) deben ser configurables sin modificar el sistema | No funcional | Calcula asignación por prioridad y flexibilidad / Evalúa tarifa (rangos preaprobados) / Reserva temporal del espacio |
+| RP-26 | El sistema debe asignar automáticamente un agente operativo a cada reserva confirmada según criterios preconfigurados y notificarle los detalles de la reserva | Funcional | Asignación automatizada de ejecutivos de operaciones o atención al cliente |
  
 ## Requisitos de proyecto
  
