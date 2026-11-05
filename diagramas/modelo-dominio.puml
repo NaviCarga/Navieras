@@ -1,0 +1,107 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam shadowing false
+skinparam ArrowColor #555555
+skinparam classBorderColor #555555
+skinparam classFontColor #222222
+
+hide circle
+hide empty methods
+
+' =========================
+' CLASES DE TRANSPORTE
+' =========================
+
+class Buque #DCEBFA {
+  codigoIMO
+  nombre
+  capacidadTotalTEU
+  navieraOperadora
+}
+
+class Viaje #DCEBFA {
+  codigoViaje
+  fechaZarpe
+  fechaArriboEstimada
+  capacidadDisponibleTEU
+  estadoViaje
+}
+
+' =========================
+' CLASES DE INFRAESTRUCTURA
+' =========================
+
+class Puerto #FFF2C9 {
+  codigoUNLOCODE
+  nombre
+  pais
+  zonaGeografica
+}
+
+class CupoContenedor #FFF2C9 {
+  tipoContenedor
+  cantidadTotal
+  cantidadDisponible
+}
+
+' =========================
+' CLASES DE RESERVAS
+' =========================
+
+class Reserva #DDF2E3 {
+  codigoBooking
+  fechaSolicitud
+  cantidadTEU
+  tipoMercancia
+  plazoMaximoCancelacion
+  estadoReserva
+}
+
+class DetalleReserva #DDF2E3 {
+  tipoContenedor
+  cantidadSolicitada
+  pesoEstimadoTon
+}
+
+' =========================
+' CLASES DE ACTORES
+' =========================
+
+class EmpresaExportadora #FCE8D5 {
+  rut
+  razonSocial
+  correoContacto
+  estadoComercial
+}
+
+class AgenteOperativo #EAE0F5 {
+  identificadorEmpleado
+  nombreCompleto
+  correoCorporativo
+  zonaGeograficaAsignada
+  /reservasActivasActuales
+  limiteMaximoReservas
+}
+
+' =========================
+' RELACIONES
+' =========================
+
+Buque "1" -- "0..*" Viaje : realiza
+
+Viaje "0..*" --> "1" Puerto : origen
+Viaje "0..*" --> "1" Puerto : destino
+
+Viaje "1" *-- "1..*" CupoContenedor : dispone de
+
+Viaje "1" -- "0..*" Reserva : concentra
+
+Reserva "1" *-- "1..*" DetalleReserva : contiene
+
+EmpresaExportadora "1" -- "0..*" Reserva : solicita
+
+AgenteOperativo "0..1" -- "0..*" Reserva : gestiona
+
+@enduml
