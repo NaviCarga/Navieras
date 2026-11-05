@@ -20,17 +20,16 @@ Archivo fuente: [`./diagramas/modelo-dominio.puml`](./diagramas/modelo-dominio.p
 ## Asociaciones
 | Asociación | Clases | Multiplicidades | Justificación |
 |------------|--------|-----------------|----------------|
-| realiza | Buque – Viaje | `1` a `0..*` | Un buque ejecuta múltiples viajes programados en su itinerario operativo. |
-| origen | Viaje – Puerto | `0..*` a `1` | Cada viaje parte obligatoriamente desde un único puerto de origen. |
-| destino | Viaje – Puerto | `0..*` a `1` | Cada viaje finaliza obligatoriamente en un único puerto de destino. |
-| dispone de | Viaje – CupoContenedor | `1` a `1..*` | Un viaje desglosa su capacidad total en uno o varios cupos según el tipo de contenedor. |
-| concentra | Viaje – Reserva | `1` a `0..*` | Un viaje agrupa múltiples solicitudes de reserva confirmadas hasta agotar su capacidad. |
-| solicita | EmpresaExportadora – Reserva | `1` a `0..*` | Una empresa exportadora puede realizar múltiples reservas de espacio de carga. |
-| gestiona | AgenteOperativo – Reserva | `0..1` a `0..*` | Un agente operativo puede supervisar varias reservas dentro de su zona o ninguna si es automatizada. |
-| contiene | Reserva – DetalleReserva | `1` a `1..*` | Toda reserva está compuesta por uno o más ítems de detalle según los tipos de contenedores requeridos. |
+| realiza | Buque – Viaje | 1 a 0..* | Un buque realiza múltiples viajes a lo largo del tiempo, pero cada viaje programado es ejecutado por un único buque asignado. |
+| origen | Viaje – Puerto | 0..* a 1 | Todo viaje programado tiene un único puerto de origen desde donde zarpa, mientras que desde un mismo puerto se inician múltiples viajes. |
+| destino | Viaje – Puerto | 0..* a 1 | Todo viaje tiene un único puerto de destino comercial definido, y un puerto recibe múltiples viajes a lo largo del calendario. |
+| dispone de | Viaje – CupoContenedor | 1 a 1..* | Un viaje oferta su inventario compuesto por uno o varios cupos según tipo de contenedor; cada registro de cupo pertenece exclusivamente a ese viaje. |
+| concentra | Viaje – Reserva | 1 a 0..* | Un viaje puede concentrar desde cero hasta múltiples reservas de espacio, pero cada reserva aplica a un único viaje programado. |
+| contiene | Reserva – DetalleReserva | 1 a 1..* | Una reserva contiene obligatoriamente al menos una línea de detalle con el tipo y cantidad de contenedores solicitados. |
+| solicita | EmpresaExportadora – Reserva | 1 a 0..* | Una empresa exportadora puede solicitar muchas reservas en el tiempo, y cada reserva pertenece a una única empresa exportadora titular. |
+| gestiona | AgenteOperativo – Reserva | 0..1 a 0..* | Una reserva puede no tener agente asignado inicialmente o tener 1 agente responsable; un agente gestiona desde cero hasta múltiples reservas. |
  
 ## Decisiones de modelado
-- **Roles y entidades de usuario:** La clase `AgenteOperativo` se modeló únicamente con atributos representativos de la gestión del negocio (como `zonaGeograficaAsignada` y `limiteMaximoReservas`), evitando atributos de sistema o credenciales de acceso informático.
-- **Relación de composición:** Se aplicó composición estricta entre `Viaje` y `CupoContenedor` (relación `1` a `1..*`), así como entre `Reserva` y `DetalleReserva` (relación `1` a `1..*`), debido a que los cupos por tipo de contenedor y los detalles de reserva no tienen existencia independiente fuera de su viaje o reserva contenedora.
-- **Atributo derivado:** El atributo `/reservasActivasActuales` en `AgenteOperativo` se marcó con barra diagonal (`/`) al ser un atributo calculado dinámicamente a partir del total de reservas asignadas en estado activo.
-- **Sin visibilidad ni métodos:** En estricto cumplimiento del nivel de análisis conceptual (dominio UML 2.0), las clases contienen solo atributos del negocio sin declaradores de visibilidad (`+`/`-`) ni métodos de implementación orientados a objetos.
+- **Roles modelados como relaciones y no como clases duplicadas:** Los conceptos de "Puerto de Origen" y "Puerto de Destino" se modelaron como dos relaciones navegables (`origen` y `destino`) desde `Viaje` hacia una única clase `Puerto`, ya que la entidad física y sus atributos (`codigoUNLOCODE`, `nombre`, `pais`, `zonaGeografica`) son los mismos.
+- **Atributo derivado (`/reservasActivasActuales`):** En `AgenteOperativo`, el atributo `/reservasActivasActuales` se modeló como derivado (prefijo `/`) porque se calcula dinámicamente a partir de la cantidad de instancias de `Reserva` en estado activo asociadas a dicho agente mediante la relación `gestiona`.
+- **Uso de composición (`*--`):** Se utilizó composición en `Viaje *-- CupoContenedor` (`dispone de`) y en `Reserva *-- DetalleReserva` (`contiene`), dado que los cupos de contenedor y el desglose de una reserva no tienen existencia independiente fuera del viaje o de la reserva que los compone.
