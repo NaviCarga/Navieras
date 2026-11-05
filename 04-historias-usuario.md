@@ -43,7 +43,7 @@ Como Exportador, quiero solicitar una reserva de espacio para mi carga en un via
 - CA1: El usuario puede seleccionar la fecha del viaje en el calendario, ingresar la cantidad de contenedores (TEUs) y asociar su número de contrato vigente.
 - CA2: El sistema debe validar que la cantidad de contenedores solicitada no supere la capacidad disponible del buque para esa fecha, confirmando la reserva si hay espacio suficiente.
 
-  ## HU-05 — Revisión manual de solicitudes inconsistentes
+## HU-05 — Revisión manual de solicitudes inconsistentes
 
 Como encargado de espacios de la naviera (case manager), quiero recibir las solicitudes de Booking que presenten inconsistencias en una cola de revisión manual y recibir una notificación cuando sean derivadas, para poder revisarlas y corregirlas antes de continuar con su procesamiento.
 
