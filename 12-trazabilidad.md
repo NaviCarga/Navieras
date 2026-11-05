@@ -19,6 +19,7 @@
 | RP-20 | HU-02 | CU-03, CU-04 | DSS-02 | EST-02 | Viaje, CupoContenedor, Reserva | Parcial |
 | RP-22 | HU-01, HU-04 | CU-01, CU-02 | DSS-01, DSS-02 | — | EmpresaExportadora, Reserva | Parcial |
 | RP-24 | HU-01, HU-04 | CU-01, CU-02 | DSS-01, DSS-02 | — | EmpresaExportadora, AgenteOperativo | Parcial |
+| RP-26 | HU-03 | CU-05, CU-06 | — | — | AgenteOperativo, Reserva | Parcial |
 
 ## Requisitos de proyecto
 
