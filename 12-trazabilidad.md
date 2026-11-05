@@ -40,3 +40,4 @@ Los requisitos RY-01 a RY-07 se mantienen separados de la matriz de requisitos d
 - **RP-20:** Se representa la revalidación de disponibilidad, pero falta especificar el control de concurrencia para impedir asignaciones simultáneas del mismo recurso.
 - **RP-22:** HU-01 y HU-04 permiten consulta y solicitud autónomas, pero no representan el seguimiento completo de cada Booking.
 - **RP-24:** Se identifican los actores, pero no se especifican completamente las restricciones de acceso y autorización por rol.
+- **RP-26:** HU-03 contempla la asignación automática de un agente operativo a cada reserva confirmada. CU-05 y CU-06 representan la asignación y gestión de reservas sin agente, respectivamente. Sin embargo, todavía falta incorporar esta funcionalidad en un diagrama de secuencia y representar el proceso de asignación en el diagrama de estados.
