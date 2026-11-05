@@ -1,6 +1,4 @@
 # Casos de uso
- 
-# Casos de uso
 
 ## Actores
 | Actor | Tipo (humano / sistema externo) | Descripción |
