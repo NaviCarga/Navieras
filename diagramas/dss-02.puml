@@ -1,26 +1,82 @@
-@startuml dss-02
-autonumber
-actor Forwarder
-participant ":SistemaNaviCarga" as Sistema
-participant ":ServicioCorreo" as Correo
 
-title DSS-02 — Procesamiento de Booking y Notificación de Confirmación
+@startuml
+title DSS-02 - Solicitar y confirmar reserva de espacio (Booking)
 
-Forwarder -> Sistema: solicitarEmisionComprobante(codigoBooking)
-activate Sistema
-Sistema -> Sistema: generarComprobanteDigital(codigoBooking)
+actor "Exportador" as Exportador
+participant "Portal Web Naviera" as Portal
+participant "Sistema de Booking" as Booking
+participant "Sistema de Evaluación\nComercial y Aduana" as Evaluacion
+participant "Sistema Central de Flota\n(ERP Naviero)" as ERP
 
-Sistema -> Correo: enviarNotificacionBooking(correoContacto, codigoBooking, detalleServicio)
-activate Correo
+Exportador -> Portal: Ingresar solicitud de Booking
+activate Portal
 
-alt Envío de Correo Exitoso
-    Correo --> Sistema: confirmaciónEntrega(status=200 OK)
-    Sistema --> Forwarder: notificaEmisionExitosa(codigoBooking, mensaje="Comprobante enviado por correo")
-else Fallo de Conexión en Servicio de Correo
-    Correo --> Sistema: errorEnvio(status=500 Service Unavailable)
-    deactivate Correo
-    Sistema -> Sistema: registrarReintentoPendiente(codigoBooking)
-    Sistema --> Forwarder: notificaEmisionConAdvertencia(codigoBooking, mensaje="Booking confirmado. Comprobante disponible para descarga directa")
+Portal -> Booking: Enviar datos de reserva\n(viaje, contenedores, TEUs, contrato)
+activate Booking
+
+Booking -> Booking: Validar datos obligatorios\ny contrato
+
+alt Datos inconsistentes
+    Booking --> Portal: Informar datos incorrectos
+    Portal --> Exportador: Mostrar errores para corregir
+else Datos consistentes
+
+    Booking -> ERP: Consultar disponibilidad preliminar
+    activate ERP
+    ERP --> Booking: Retornar capacidad disponible
+    deactivate ERP
+
+    alt Capacidad insuficiente
+        Booking --> Portal: Informar falta de capacidad
+        Portal --> Exportador: Rechazar solicitud por falta de cupos
+
+    else Capacidad suficiente
+
+        Booking -> Evaluacion: Validar estado comercial\ny documentación aduanera
+        activate Evaluacion
+        Evaluacion --> Booking: Retornar resultado de validación
+        deactivate Evaluacion
+
+        alt Cliente bloqueado o documentación inválida
+            Booking -> Booking: Registrar solicitud como Rechazada
+            Booking --> Portal: Informar motivo del rechazo
+            Portal --> Exportador: Mostrar rechazo de solicitud
+
+        else Cliente y carga validados
+
+            par Definición de tarifa
+                Booking -> Booking: Aplicar tarifa por defecto\n(si corresponde)
+            else Cálculo de asignación
+                Booking -> Booking: Calcular asignación de buque\ny contenedores
+            end
+
+            Booking -> ERP: Revalidar disponibilidad
+            activate ERP
+            ERP --> Booking: Confirmar capacidad actual
+            deactivate ERP
+
+            alt Disponibilidad confirmada
+                Booking -> ERP: Registrar asignación de recursos
+                activate ERP
+                ERP --> Booking: Confirmar asignación
+                deactivate ERP
+
+                Booking -> Booking: Registrar reserva confirmada
+                Booking -> Booking: Generar código Booking
+
+                Booking --> Portal: Enviar confirmación y detalles
+                Portal --> Exportador: Mostrar comprobante de reserva
+
+            else Disponibilidad insuficiente
+                Booking -> Booking: Mantener solicitud sin confirmar
+                Booking --> Portal: Informar que ya no existe capacidad
+                Portal --> Exportador: Mostrar falta de disponibilidad
+            end
+        end
+    end
 end
-deactivate Sistema
+
+deactivate Booking
+deactivate Portal
 @enduml
+
