@@ -33,3 +33,4 @@ Variantes representadas:
 - Revalidación de disponibilidad antes de confirmar.
 - Confirmación o rechazo de la solicitud.
 
+
