@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Disponibilidad de espacio · Naviera Guerrero</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --azul: #0b4f6c;
+        --azul-claro: #e8f2f5;
+        --borde: #c9d6db;
+        --texto: #1d2b30;
+        --verde: #1f7a4d;
+        --rojo: #a33a2b;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--texto);
+        background: #f6f8f9;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--azul);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .marca {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      header nav {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      header nav a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      header nav a:hover {
+        border-bottom-color: white;
+      }
+      header form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+      header select {
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.35rem;
+        border: 1px solid white;
+      }
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .filtros {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+      }
+      .filtros label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .filtros input,
+      .filtros select {
+        padding: 0.45rem 0.6rem;
+        border: 1px solid var(--borde);
+        border-radius: 0.4rem;
+        font-size: 0.95rem;
+      }
+      .filtros button {
+        padding: 0.5rem 1rem;
+        border: 0;
+        border-radius: 0.4rem;
+        background: var(--azul);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .filtros a {
+        color: var(--azul);
+        font-size: 0.9rem;
+        align-self: center;
+      }
+      .calendario {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .dia {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        overflow: hidden;
+      }
+      .dia h3 {
+        margin: 0;
+        padding: 0.75rem 1rem;
+        background: var(--azul-claro);
+        color: var(--azul);
+        font-size: 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.6rem 1rem;
+        text-align: left;
+        border-top: 1px solid var(--borde);
+        font-size: 0.92rem;
+      }
+      th {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5a6b72;
+      }
+      .con-cupo {
+        color: var(--verde);
+        font-weight: 600;
+      }
+      .sin-cupo {
+        color: var(--rojo);
+        font-weight: 600;
+      }
+      .aviso {
+        padding: 1rem;
+        background: #fff4e5;
+        border: 1px solid #f0c68a;
+        border-radius: 0.5rem;
+      }
+      .nota {
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: #5a6b72;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('parciales/encabezado') %>
+    <main>
+      <h2>Consulta de itinerarios y disponibilidad</h2>
+      <p>Consulta los viajes programados y los cupos disponibles por ruta y tipo de contenedor.</p>
+
+      <form method="get" action="/disponibilidad" class="filtros">
+        <label>
+          Puerto de origen
+          <input type="text" name="origen" value="<%= filtros.origen ?? '' %>" placeholder="San Antonio" />
+        </label>
+        <label>
+          Puerto de destino
+          <input type="text" name="destino" value="<%= filtros.destino ?? '' %>" placeholder="Shanghái" />
+        </label>
+        <label>
+          Tipo de contenedor
+          <select name="tipoContenedor">
+            <option value="">Todos</option>
+            <% for (const tipo of ['20GP', '40HQ', '40RF']) { %>
+              <option value="<%= tipo %>" <%= filtros.tipoContenedor === tipo ? 'selected' : '' %>><%= tipo %></option>
+            <% } %>
+          </select>
+        </label>
+        <button type="submit">Consultar</button>
+        <a href="/disponibilidad">Limpiar</a>
+      </form>
+
+      <% if (hayConsulta && viajes.length === 0) { %>
+        <p class="aviso">No se encontraron viajes con capacidad para los criterios ingresados.</p>
+      <% } %>
+
+      <% if (viajes.length > 0) { %>
+        <section class="calendario">
+          <% for (const grupo of porFecha) { %>
+            <article class="dia">
+              <h3><%= grupo.fecha %></h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Buque</th>
+                    <th>Zarpe</th>
+                    <th>Ruta</th>
+                    <th>Arribo estimado</th>
+                    <th>Cupos</th>
+                    <th>Reserva</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% for (const viaje of grupo.viajes) { %>
+                    <tr>
+                      <td><%= viaje.buqueNombre %></td>
+                      <td><%= viaje.fechaZarpe %></td>
+                      <td><%= viaje.puertoOrigen %> → <%= viaje.puertoDestino %></td>
+                      <td><%= viaje.fechaArriboEstimada %></td>
+                      <td>
+                        <% if (viaje.cupos.length === 0) { %>
+                          <span class="sin-cupo">Sin capacidad disponible</span>
+                        <% } else { %>
+                          <% for (const cupo of viaje.cupos) { %>
+                            <% if (cupo.cantidadDisponible > 0) { %>
+                              <span class="con-cupo"><%= cupo.cantidadDisponible %> cupos <%= cupo.tipoContenedor %></span>
+                            <% } else { %>
+                              <span class="sin-cupo">Sin capacidad disponible para <%= cupo.tipoContenedor %></span>
+                              <br />
+                              <small>No se habilita para nuevas solicitudes de reserva de ese tipo.</small>
+                            <% } %>
+                          <% } %>
+                        <% } %>
+                      </td>
+                      <td><a href="/booking?viaje=<%= encodeURIComponent(viaje.codigoViaje) %>">Solicitar</a></td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </article>
+          <% } %>
+        </section>
+      <% } %>
+
+      <p class="nota">Integración simulada con el Sistema Central de Flota (ERP Naviero).</p>
+    </main>
+  </body>
+</html>

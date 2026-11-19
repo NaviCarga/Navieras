@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comprobante de reserva · Naviera Guerrero</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --azul: #0b4f6c;
+        --azul-claro: #e8f2f5;
+        --borde: #c9d6db;
+        --texto: #1d2b30;
+        --verde: #1f7a4d;
+        --rojo: #a33a2b;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--texto);
+        background: #f6f8f9;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--azul);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .marca {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      header nav {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      header nav a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      header nav a:hover {
+        border-bottom-color: white;
+      }
+      header form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+      header select {
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.35rem;
+        border: 1px solid white;
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .tarjeta {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+      }
+      .encabezado-comprobante {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: start;
+        gap: 1rem;
+        border-bottom: 1px solid var(--borde);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+      }
+      .codigo {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--azul);
+        margin: 0.2rem 0 0;
+      }
+      .estado {
+        display: inline-block;
+        padding: 0.3rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .estado.confirmada {
+        background: #e9f7ef;
+        color: var(--verde);
+      }
+      .estado.rechazada {
+        background: #fdecea;
+        color: var(--rojo);
+      }
+      .estado.temporal {
+        background: #fff4e5;
+        color: #8a5300;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 0.9rem 1.5rem;
+        margin: 0;
+      }
+      dt {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5a6b72;
+        font-weight: 600;
+      }
+      dd {
+        margin: 0.2rem 0 0;
+        font-size: 0.95rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.25rem;
+      }
+      th,
+      td {
+        padding: 0.55rem 0.6rem;
+        text-align: left;
+        border-top: 1px solid var(--borde);
+        font-size: 0.9rem;
+      }
+      th {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5a6b72;
+      }
+      .aviso {
+        padding: 0.9rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .aviso.ok {
+        background: #e9f7ef;
+        border: 1px solid #9fd8b4;
+        color: var(--verde);
+      }
+      .aviso.pendiente {
+        background: #fff4e5;
+        border: 1px solid #f0c68a;
+        color: #8a5300;
+      }
+      .acciones {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      .acciones a {
+        color: var(--azul);
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('parciales/encabezado') %>
+    <main>
+      <h2>Comprobante de reserva</h2>
+
+      <% if (aviso) { %>
+        <div class="aviso ok"><%= aviso %></div>
+      <% } %>
+
+      <% if (reserva.estadoReserva !== 'Confirmada') { %>
+        <div class="aviso pendiente">
+          La reserva no está confirmada. Estado actual: <%= reserva.estadoReserva %>.
+        </div>
+      <% } %>
+
+      <article class="tarjeta">
+        <div class="encabezado-comprobante">
+          <div>
+            <span class="codigo"><%= reserva.codigoBooking %></span>
+            <p>Naviera Guerrero · Booking de carga</p>
+          </div>
+          <span class="estado <%= reserva.estadoReserva.toLowerCase().replace(' ', '-') %>">
+            <%= reserva.estadoReserva %>
+          </span>
+        </div>
+
+        <dl>
+          <div>
+            <dt>Empresa exportadora</dt>
+            <dd><%= reserva.empresa.razonSocial %></dd>
+            <dd><%= reserva.empresa.rut %> · <%= reserva.empresa.correoContacto %></dd>
+          </div>
+          <div>
+            <dt>Contrato</dt>
+            <dd><%= reserva.numeroContrato ?? 'Sin contrato registrado' %></dd>
+          </div>
+          <div>
+            <dt>Viaje</dt>
+            <dd><%= reserva.viaje.codigoViaje %> · <%= reserva.buqueNombre %></dd>
+          </div>
+          <div>
+            <dt>Ruta</dt>
+            <dd><%= reserva.puertoOrigen %> → <%= reserva.puertoDestino %></dd>
+          </div>
+          <div>
+            <dt>Zarpe</dt>
+            <dd><%= reserva.viaje.fechaZarpe %></dd>
+          </div>
+          <div>
+            <dt>Arribo estimado</dt>
+            <dd><%= reserva.viaje.fechaArriboEstimada %></dd>
+          </div>
+          <div>
+            <dt>Fecha de solicitud</dt>
+            <dd><%= reserva.fechaSolicitud %></dd>
+          </div>
+          <div>
+            <dt>Plazo máximo de cancelación</dt>
+            <dd><%= reserva.plazoMaximoCancelacion %></dd>
+          </div>
+          <div>
+            <dt>Tipo de mercancía</dt>
+            <dd><%= reserva.tipoMercancia %></dd>
+          </div>
+          <div>
+            <dt>Cantidad total</dt>
+            <dd><%= reserva.cantidadTEU %> TEUs</dd>
+          </div>
+          <div>
+            <dt>Agente operativo</dt>
+            <dd>
+              <% if (reserva.agente) { %>
+                <%= reserva.agente.nombreCompleto %> · <%= reserva.agente.zonaGeograficaAsignada %>
+              <% } else { %>
+                Sin agente asignado por ahora
+              <% } %>
+            </dd>
+          </div>
+        </dl>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de contenedor</th>
+              <th>Cantidad</th>
+              <th>Peso estimado (ton)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (const detalle of reserva.detalles) { %>
+              <tr>
+                <td><%= detalle.tipoContenedor %></td>
+                <td><%= detalle.cantidadSolicitada %></td>
+                <td><%= detalle.pesoEstimadoTon %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </article>
+
+      <div class="acciones">
+        <a href="/booking">Solicitar otra reserva</a>
+        <a href="/disponibilidad">Volver a la disponibilidad</a>
+      </div>
+    </main>
+  </body>
+</html>

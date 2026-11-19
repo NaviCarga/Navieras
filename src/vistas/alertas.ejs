@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alertas de asignación · Naviera Guerrero</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --azul: #0b4f6c;
+        --azul-claro: #e8f2f5;
+        --borde: #c9d6db;
+        --texto: #1d2b30;
+        --verde: #1f7a4d;
+        --rojo: #a33a2b;
+        --ambar: #8a5a00;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--texto);
+        background: #f6f8f9;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--azul);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .marca {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      header nav {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      header nav a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      header nav a:hover {
+        border-bottom-color: white;
+      }
+      header form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+      header select {
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.35rem;
+        border: 1px solid white;
+      }
+      main {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .mensaje {
+        padding: 0.85rem 1rem;
+        border-radius: 0.5rem;
+        margin: 0 0 1rem;
+      }
+      .mensaje.exito {
+        background: #e7f5ee;
+        border: 1px solid #a9d8bf;
+        color: var(--verde);
+      }
+      .mensaje.error {
+        background: #fdecea;
+        border: 1px solid #e8b4ad;
+        color: var(--rojo);
+      }
+      .alerta {
+        background: #fff4e5;
+        border: 1px solid #f0d4a5;
+        color: var(--ambar);
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+      .tarjeta {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .tarjeta h3 {
+        margin: 0 0 0.75rem;
+        color: var(--azul);
+      }
+      .tabla-contenedor {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+      }
+      th,
+      td {
+        padding: 0.65rem 0.8rem;
+        text-align: left;
+        border-top: 1px solid var(--borde);
+        font-size: 0.9rem;
+        vertical-align: top;
+      }
+      thead th {
+        border-top: 0;
+        background: var(--azul-claro);
+        color: var(--azul);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      button {
+        padding: 0.4rem 0.7rem;
+        border: 0;
+        border-radius: 0.4rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        background: var(--azul);
+        color: white;
+      }
+      .sin-cupo {
+        color: var(--rojo);
+        font-weight: 700;
+      }
+      .con-cupo {
+        color: var(--verde);
+        font-weight: 700;
+      }
+      .vacio {
+        color: #5a6b72;
+        font-size: 0.9rem;
+      }
+      .nota {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #5a6b72;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('parciales/encabezado') %>
+    <main>
+      <h2>Alertas de asignación de agente</h2>
+      <p>
+        Reservas confirmadas que no tienen agente operativo asignado porque ningún agente de la zona
+        de destino tiene cupo de atención.
+      </p>
+
+      <% if (mensaje) { %>
+        <p class="mensaje <%= error ? 'error' : 'exito' %>"><%= mensaje %></p>
+      <% } %>
+
+      <% if (reservasSinAgente.length > 0) { %>
+        <p class="alerta">
+          Hay <%= reservasSinAgente.length %> reserva(s) con asignación manual pendiente.
+        </p>
+      <% } %>
+
+      <div class="tarjeta">
+        <h3>Reservas sin agente asignado</h3>
+        <% if (reservasSinAgente.length === 0) { %>
+          <p class="vacio">No hay alertas pendientes.</p>
+        <% } else { %>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking</th>
+                  <th>Empresa</th>
+                  <th>Viaje</th>
+                  <th>Zarpe</th>
+                  <th>TEUs</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% for (const reserva of reservasSinAgente) { %>
+                  <tr>
+                    <td><strong><%= reserva.codigoBooking %></strong></td>
+                    <td>
+                      <%= reserva.empresa.razonSocial %>
+                      <br /><small><%= reserva.empresa.rut %></small>
+                    </td>
+                    <td>
+                      <%= reserva.viaje.codigoViaje %>
+                      <br /><small><%= reserva.puertoOrigen %> → <%= reserva.puertoDestino %></small>
+                    </td>
+                    <td><%= reserva.viaje.fechaZarpe %></td>
+                    <td><%= reserva.cantidadTEU %></td>
+                    <td><%= reserva.estadoReserva %> sin agente asignado</td>
+                    <td>
+                      <form method="post" action="/alertas/<%= reserva.id %>/reintentar">
+                        <button type="submit">Reintentar asignación</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="tarjeta">
+        <h3>Agentes operativos y carga de atención</h3>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Identificador</th>
+                <th>Nombre</th>
+                <th>Zona asignada</th>
+                <th>Reservas activas</th>
+                <th>Límite</th>
+                <th>Cupo de atención</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (const agente of agentes) { %>
+                <% const sinCupo = agente.reservasActivasActuales >= agente.limiteMaximoReservas; %>
+                <tr>
+                  <td><strong><%= agente.identificadorEmpleado %></strong></td>
+                  <td><%= agente.nombreCompleto %></td>
+                  <td><%= agente.zonaGeograficaAsignada %></td>
+                  <td><%= agente.reservasActivasActuales %></td>
+                  <td><%= agente.limiteMaximoReservas %></td>
+                  <td class="<%= sinCupo ? 'sin-cupo' : 'con-cupo' %>">
+                    <%= sinCupo ? 'Sin cupo' : 'Disponible' %>
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="nota">
+        El reintento aplica la misma regla automática: zona del puerto de destino y menor cantidad
+        de reservas activas.
+      </p>
+    </main>
+  </body>
+</html>

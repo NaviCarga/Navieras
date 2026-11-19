@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel del agente · Naviera Guerrero</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --azul: #0b4f6c;
+        --azul-claro: #e8f2f5;
+        --borde: #c9d6db;
+        --texto: #1d2b30;
+        --verde: #1f7a4d;
+        --ambar: #8a5a00;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--texto);
+        background: #f6f8f9;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--azul);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .marca {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      header nav {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      header nav a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      header nav a:hover {
+        border-bottom-color: white;
+      }
+      header form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+      header select {
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.35rem;
+        border: 1px solid white;
+      }
+      main {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .tarjeta {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .tarjeta h3 {
+        margin: 0 0 0.75rem;
+        color: var(--azul);
+      }
+      .ficha {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+      }
+      .ficha span {
+        color: #5a6b72;
+      }
+      .tabla-contenedor {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 820px;
+      }
+      th,
+      td {
+        padding: 0.65rem 0.8rem;
+        text-align: left;
+        border-top: 1px solid var(--borde);
+        font-size: 0.9rem;
+        vertical-align: top;
+      }
+      thead th {
+        border-top: 0;
+        background: var(--azul-claro);
+        color: var(--azul);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .estado {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: #e7f5ee;
+        color: var(--verde);
+      }
+      .carga {
+        font-weight: 700;
+        color: var(--ambar);
+      }
+      ul.notificaciones {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      ul.notificaciones li {
+        border-left: 3px solid var(--azul);
+        padding: 0.35rem 0.75rem;
+        font-size: 0.9rem;
+      }
+      ul.notificaciones small {
+        color: #5a6b72;
+      }
+      .vacio {
+        color: #5a6b72;
+        font-size: 0.9rem;
+      }
+      .nota {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #5a6b72;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('parciales/encabezado') %>
+    <main>
+      <h2>Panel del agente operativo</h2>
+      <div class="tarjeta">
+        <form method="get" action="/agente">
+          <label for="agente">Agente de demostración:</label>
+          <select id="agente" name="agente" onchange="this.form.submit()">
+            <% for (const opcion of agentes) { %>
+              <option value="<%= opcion.identificadorEmpleado %>" <%= agente && opcion.id === agente.id ? 'selected' : '' %>>
+                <%= opcion.nombreCompleto %> (<%= opcion.identificadorEmpleado %>)
+              </option>
+            <% } %>
+          </select>
+          <noscript><button type="submit">Ver panel</button></noscript>
+        </form>
+        <% if (agente) { %>
+          <h3><%= agente.nombreCompleto %> · <%= agente.identificadorEmpleado %></h3>
+          <div class="ficha">
+            <div><span>Zona asignada</span><br /><strong><%= agente.zonaGeograficaAsignada %></strong></div>
+            <div><span>Correo corporativo</span><br /><strong><%= agente.correoCorporativo %></strong></div>
+            <div>
+              <span>Reservas activas</span><br />
+              <strong class="carga"><%= agente.reservasActivasActuales %> de <%= agente.limiteMaximoReservas %></strong>
+            </div>
+          </div>
+        <% } else { %>
+          <p class="vacio">No hay agentes operativos registrados.</p>
+        <% } %>
+      </div>
+
+      <div class="tarjeta">
+        <h3>Reservas asignadas</h3>
+        <% if (reservas.length === 0) { %>
+          <p class="vacio">Este agente no tiene reservas confirmadas asignadas.</p>
+        <% } else { %>
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking</th>
+                  <th>Empresa</th>
+                  <th>Viaje</th>
+                  <th>Zarpe</th>
+                  <th>TEUs</th>
+                  <th>Mercancía</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% for (const reserva of reservas) { %>
+                  <tr>
+                    <td><strong><%= reserva.codigoBooking %></strong></td>
+                    <td>
+                      <%= reserva.empresa.razonSocial %>
+                      <br /><small><%= reserva.empresa.rut %></small>
+                    </td>
+                    <td>
+                      <%= reserva.viaje.codigoViaje %>
+                      <br /><small><%= reserva.puertoOrigen %> → <%= reserva.puertoDestino %></small>
+                    </td>
+                    <td><%= reserva.viaje.fechaZarpe %></td>
+                    <td><%= reserva.cantidadTEU %></td>
+                    <td><%= reserva.tipoMercancia %></td>
+                    <td><span class="estado"><%= reserva.estadoReserva %></span></td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="tarjeta">
+        <h3>Notificaciones</h3>
+        <% if (notificaciones.length === 0) { %>
+          <p class="vacio">No hay notificaciones para este agente.</p>
+        <% } else { %>
+          <ul class="notificaciones">
+            <% for (const notificacion of notificaciones) { %>
+              <li>
+                <%= notificacion.mensaje %>
+                <br /><small><%= notificacion.fecha %> · para <%= notificacion.destinatarioCorreo %></small>
+              </li>
+            <% } %>
+          </ul>
+        <% } %>
+      </div>
+
+      <p class="nota">
+        La notificación es interna y simulada: se registra en la aplicación y se muestra en este
+        panel, sin envío de correo real.
+      </p>
+    </main>
+  </body>
+</html>

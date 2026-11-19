@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reservas e inventario · Naviera Guerrero</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --azul: #0b4f6c;
+        --azul-claro: #e8f2f5;
+        --borde: #c9d6db;
+        --texto: #1d2b30;
+        --verde: #1f7a4d;
+        --rojo: #a33a2b;
+        --ambar: #8a5a00;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--texto);
+        background: #f6f8f9;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        background: var(--azul);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .marca {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      header nav {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      header nav a {
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+      header nav a:hover {
+        border-bottom-color: white;
+      }
+      header form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+      header select {
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.35rem;
+        border: 1px solid white;
+      }
+      main {
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .mensaje {
+        padding: 0.85rem 1rem;
+        border-radius: 0.5rem;
+        margin: 0 0 1rem;
+      }
+      .mensaje.exito {
+        background: #e7f5ee;
+        border: 1px solid #a9d8bf;
+        color: var(--verde);
+      }
+      .mensaje.error {
+        background: #fdecea;
+        border: 1px solid #e8b4ad;
+        color: var(--rojo);
+      }
+      .tabla-contenedor {
+        background: white;
+        border: 1px solid var(--borde);
+        border-radius: 0.75rem;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+      }
+      th,
+      td {
+        padding: 0.65rem 0.8rem;
+        text-align: left;
+        border-top: 1px solid var(--borde);
+        font-size: 0.9rem;
+        vertical-align: top;
+      }
+      thead th {
+        border-top: 0;
+        background: var(--azul-claro);
+        color: var(--azul);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .estado {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: #eef1f3;
+      }
+      .estado-confirmada {
+        background: #e7f5ee;
+        color: var(--verde);
+      }
+      .estado-rechazada {
+        background: #fdecea;
+        color: var(--rojo);
+      }
+      .estado-cancelada {
+        background: #f1f1f1;
+        color: #5a6b72;
+      }
+      .estado-reserva-temporal {
+        background: #fff4e5;
+        color: var(--ambar);
+      }
+      .detalles {
+        margin: 0;
+        padding-left: 1rem;
+      }
+      .acciones {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      button {
+        padding: 0.4rem 0.7rem;
+        border: 0;
+        border-radius: 0.4rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      button.confirmar {
+        background: var(--verde);
+        color: white;
+      }
+      button.cancelar {
+        background: var(--rojo);
+        color: white;
+      }
+      .sin-accion {
+        color: #5a6b72;
+        font-size: 0.85rem;
+      }
+      .nota {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #5a6b72;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('parciales/encabezado') %>
+    <main>
+      <h2>Reservas y actualización del inventario</h2>
+      <p>
+        Confirma o cancela reservas para actualizar automáticamente la capacidad disponible del viaje y
+        de sus cupos por tipo de contenedor.
+      </p>
+
+      <% if (mensaje) { %>
+        <p class="mensaje <%= error ? 'error' : 'exito' %>"><%= mensaje %></p>
+      <% } %>
+
+      <div class="tabla-contenedor">
+        <table>
+          <thead>
+            <tr>
+              <th>Booking</th>
+              <th>Empresa</th>
+              <th>Viaje</th>
+              <th>TEUs</th>
+              <th>Detalle</th>
+              <th>Estado</th>
+              <th>Agente</th>
+              <th>Plazo de cancelación</th>
+              <th>Capacidad del viaje</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (const reserva of reservas) { %>
+              <tr>
+                <td><strong><%= reserva.codigoBooking %></strong></td>
+                <td>
+                  <%= reserva.empresa.razonSocial %>
+                  <br /><small><%= reserva.empresa.rut %></small>
+                </td>
+                <td>
+                  <%= reserva.viaje.codigoViaje %>
+                  <br /><small><%= reserva.puertoOrigen %> → <%= reserva.puertoDestino %></small>
+                  <br /><small>Zarpe: <%= reserva.viaje.fechaZarpe %></small>
+                </td>
+                <td><%= reserva.cantidadTEU %></td>
+                <td>
+                  <ul class="detalles">
+                    <% for (const detalle of reserva.detalles) { %>
+                      <li><%= detalle.cantidadSolicitada %> TEUs <%= detalle.tipoContenedor %></li>
+                    <% } %>
+                  </ul>
+                </td>
+                <td>
+                  <span class="estado estado-<%= reserva.estadoReserva.toLowerCase().replaceAll(' ', '-') %>">
+                    <%= reserva.estadoReserva %>
+                  </span>
+                </td>
+                <td>
+                  <% if (reserva.agente) { %>
+                    <%= reserva.agente.nombreCompleto %>
+                    <br /><small><%= reserva.agente.identificadorEmpleado %></small>
+                  <% } else { %>
+                    <span class="sin-accion">Sin agente asignado</span>
+                  <% } %>
+                </td>
+                <td><%= reserva.plazoMaximoCancelacion %></td>
+                <td><strong><%= reserva.viaje.capacidadDisponibleTEU %> TEUs</strong></td>
+                <td>
+                  <div class="acciones">
+                    <% if (reserva.estadoReserva === 'Reserva temporal') { %>
+                      <form method="post" action="/reservas/<%= reserva.id %>/confirmar">
+                        <button type="submit" class="confirmar">Confirmar</button>
+                      </form>
+                    <% } else if (reserva.estadoReserva === 'Confirmada') { %>
+                      <form method="post" action="/reservas/<%= reserva.id %>/cancelar">
+                        <button type="submit" class="cancelar">Cancelar</button>
+                      </form>
+                    <% } else { %>
+                      <span class="sin-accion">Sin acciones disponibles</span>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="nota">
+        Integración simulada con el Sistema Central de Flota (ERP Naviero): cada confirmación o
+        cancelación queda registrada en el log de integraciones.
+      </p>
+    </main>
+  </body>
+</html>

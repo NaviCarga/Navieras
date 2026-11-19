@@ -1,0 +1,29 @@
+<header>
+  <div class="marca">
+    <h1>Naviera Guerrero · Gestión de espacio</h1>
+    <nav>
+      <% if (rol === 'exportador') { %>
+        <a href="/disponibilidad">Disponibilidad</a>
+        <a href="/booking">Solicitar reserva</a>
+      <% } else if (rol === 'naviera') { %>
+        <a href="/disponibilidad">Disponibilidad</a>
+        <a href="/reservas">Reservas</a>
+      <% } else if (rol === 'agente') { %>
+        <a href="/agente">Panel del agente</a>
+      <% } else if (rol === 'administrador') { %>
+        <a href="/alertas">Alertas</a>
+        <a href="/reservas">Reservas</a>
+      <% } %>
+    </nav>
+  </div>
+  <form method="get" action="/rol">
+    <label for="rol">Rol de demostración:</label>
+    <select id="rol" name="rol" onchange="this.form.submit()">
+      <option value="exportador" <%= rol === 'exportador' ? 'selected' : '' %>>Exportador</option>
+      <option value="naviera" <%= rol === 'naviera' ? 'selected' : '' %>>Naviera</option>
+      <option value="agente" <%= rol === 'agente' ? 'selected' : '' %>>Agente Operativo</option>
+      <option value="administrador" <%= rol === 'administrador' ? 'selected' : '' %>>Administrador de Naviera</option>
+    </select>
+    <noscript><button type="submit">Cambiar rol</button></noscript>
+  </form>
+</header>
