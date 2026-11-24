@@ -13,7 +13,7 @@ Como exportador, al ingresar a la pagina quiero acceso a un calendario que me mu
 
 ## HU-02
 
-Como naviera, quiero que se actualicen automaticamente las disponibilidades de espacio en buques en el calendario, para reflejar de forma inmediata las nuevas reservas confirmadas y evitar sobreventas o errores de inventario de espacio.
+Como naviera, quiero que se actualicen automaticamente las disponibilidades de espacio en buques en el calendario, para reflejar de forma inmediata las nuevas reservas confirmadas y evitar errores de inventario de espacio.
 
 **Actividad TO-BE asociada:** Sincronización automática del inventario de espacios (Allocation Management) con cada reserva procesada por el sistema.
 
@@ -41,4 +41,4 @@ Como Exportador, quiero solicitar una reserva de espacio para mi carga en un via
 
 **Criterios de aceptación:**
 - CA1: El usuario puede seleccionar la fecha del viaje en el calendario, ingresar la cantidad de contenedores (TEUs) y asociar su número de contrato vigente.
-- CA2: El sistema debe validar que la cantidad de contenedores solicitada no supere la capacidad disponible del buque para esa fecha, confirmando la reserva si hay espacio suficiente.
+- CA2: El sistema debe validar que la cantidad de peso de carga solicitada no supere la capacidad disponible del buque con una tolerancia de hasta un 3% de sobrecarga ;En caso de exceso se rechazara de manera automática, se confirma la reserva si hay espacio suficiente y si existe una sobrecargar se dejara en estado "En lista de espera" al cliente.
