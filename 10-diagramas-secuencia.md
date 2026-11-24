@@ -21,7 +21,7 @@ Variantes representadas:
 - Historia: [HU-04](./04-historias-usuario.md#hu-04)
 - Sistemas externos que participan: Sistema Central de Flota (ERP Naviero) y Sistema de Evaluación Comercial y Aduana.
 
-![DSS-02](./diagramas/dss-02.png)
+![DSS-02](./diagramas/dss-02-02.jpg)
 
 Archivo fuente: [`./diagramas/dss-02.puml`](./diagramas/dss-02.puml)
 
