@@ -1,7 +1,7 @@
 # Modelo de dominio
  
 ## Diagrama
-![Modelo de dominio](./diagramas/modelo-dominio.png)
+![Modelo de dominio](./diagramas/modelo-dominio-2.png)
  
 Archivo fuente: [`./diagramas/modelo-dominio.puml`](./diagramas/modelo-dominio.puml)
  
