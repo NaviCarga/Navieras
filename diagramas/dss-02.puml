@@ -23,12 +23,20 @@ else Datos consistentes
 
     Booking -> ERP: Consultar disponibilidad preliminar
     activate ERP
-    ERP --> Booking: Retornar capacidad disponible
+    ERP --> Booking: Retornar capacidad disponible (D)\ny capacidad total (C)
     deactivate ERP
 
-    alt Capacidad insuficiente
-        Booking --> Portal: Informar falta de capacidad
+    Booking -> Booking: Comparar TEU solicitados (q) con D;\nsi q > D, calcular sobrecupo acumulado = E + (q − D)\ny tope de sobrecupo = 3% de C
+
+    alt Capacidad insuficiente y sobrecupo acumulado > tope de sobrecupo
+        Booking -> Booking: Registrar solicitud como Rechazada
+        Booking --> Portal: Informar falta de capacidad\n(supera el tope de sobrecupo)
         Portal --> Exportador: Rechazar solicitud por falta de cupos
+
+    else Capacidad insuficiente y sobrecupo acumulado ≤ tope de sobrecupo
+        Booking -> Booking: Registrar reserva "En lista de espera"\ncon código Booking y posición en la lista
+        Booking --> Portal: Informar lista de espera y posición
+        Portal --> Exportador: Mostrar estado "En lista de espera"\ny posición
 
     else Capacidad suficiente
 
@@ -52,7 +60,7 @@ else Datos consistentes
 
             Booking -> ERP: Revalidar disponibilidad
             activate ERP
-            ERP --> Booking: Confirmar capacidad actual
+            ERP --> Booking: Confirmar capacidad actual (D)
             deactivate ERP
 
             alt Disponibilidad confirmada
@@ -67,9 +75,24 @@ else Datos consistentes
                 Booking --> Portal: Enviar confirmación y detalles
                 Portal --> Exportador: Mostrar comprobante de reserva
 
-            else Disponibilidad insuficiente
-                Booking -> Booking: Mantener solicitud sin confirmar
-                Booking --> Portal: Informar que ya no existe capacidad
+            else Disponibilidad insuficiente y sobrecupo acumulado ≤ tope de sobrecupo
+                Booking -> ERP: Liberar espacio temporal
+                activate ERP
+                ERP --> Booking: Confirmar liberación
+                deactivate ERP
+
+                Booking -> Booking: Registrar reserva "En lista de espera"\ncon código Booking y posición en la lista
+                Booking --> Portal: Informar lista de espera y posición
+                Portal --> Exportador: Mostrar estado "En lista de espera"\ny posición
+
+            else Disponibilidad insuficiente y sobrecupo acumulado > tope de sobrecupo
+                Booking -> ERP: Liberar espacio temporal
+                activate ERP
+                ERP --> Booking: Confirmar liberación
+                deactivate ERP
+
+                Booking -> Booking: Registrar solicitud como Rechazada
+                Booking --> Portal: Informar que ya no existe capacidad\n(supera el tope de sobrecupo)
                 Portal --> Exportador: Mostrar falta de disponibilidad
             end
         end
