@@ -19,12 +19,15 @@ rectangle "Sistema de Gestión de Reservas e Itinerarios Navieros" {
   usecase "CU-04: Actualizar capacidad disponible\n(TEU) y cupos del viaje" as CU04
   usecase "CU-05: Asignar agente operativo a reserva\nsegún zona geográfica y límite activo" as CU05
   usecase "CU-06: Gestionar reserva sin agente\npor límite máximo alcanzado" as CU06
+  usecase "CU-07: Consultar estado\nde una reserva" as CU07
+  usecase "CU-08: Confirmar reservas en lista de espera\nal liberarse cupo" as CU08
 }
 
 ' Relaciones de Actores Humanos
 Exportador --> CU01
 Exportador --> CU02
 Exportador --> CU03
+Exportador --> CU07
 
 Agente --> CU05
 Admin --> CU05
@@ -35,6 +38,9 @@ CU02 ..> CU04 : <<include>>
 CU03 ..> CU04 : <<include>>
 CU02 ..> CU05 : <<include>>
 CU06 ..> CU05 : <<extend>>\n[reservasActivasActuales ==\nlimiteMaximoReservas]
+CU03 ..> CU08 : <<include>>
+CU08 ..> CU04 : <<include>>
+CU08 ..> CU05 : <<include>>
 
 ' Relaciones con Sistemas Externos
 CU01 --> ERP
