@@ -187,6 +187,11 @@
         <p class="mensaje <%= error ? 'error' : 'exito' %>"><%= mensaje %></p>
       <% } %>
 
+      <%# HU-04 CA4 / HU-02: cierre explícito de listas de espera por zarpe %>
+      <form method="post" action="/reservas/cerrar-listas">
+        <button type="submit">Cerrar listas de espera vencidas</button>
+      </form>
+
       <div class="tabla-contenedor">
         <table>
           <thead>
@@ -197,6 +202,7 @@
               <th>TEUs</th>
               <th>Detalle</th>
               <th>Estado</th>
+              <th>Posición en lista de espera</th>
               <th>Agente</th>
               <th>Plazo de cancelación</th>
               <th>Capacidad del viaje</th>
@@ -230,6 +236,13 @@
                   </span>
                 </td>
                 <td>
+                  <% if (reserva.posicionListaEspera !== null) { %>
+                    <strong><%= reserva.posicionListaEspera %></strong>
+                  <% } else { %>
+                    <span class="sin-accion">—</span>
+                  <% } %>
+                </td>
+                <td>
                   <% if (reserva.agente) { %>
                     <%= reserva.agente.nombreCompleto %>
                     <br /><small><%= reserva.agente.identificadorEmpleado %></small>
@@ -245,7 +258,7 @@
                       <form method="post" action="/reservas/<%= reserva.id %>/confirmar">
                         <button type="submit" class="confirmar">Confirmar</button>
                       </form>
-                    <% } else if (reserva.estadoReserva === 'Confirmada') { %>
+                    <% } else if (reserva.estadoReserva === 'Confirmada' || reserva.estadoReserva === 'En lista de espera') { %>
                       <form method="post" action="/reservas/<%= reserva.id %>/cancelar">
                         <button type="submit" class="cancelar">Cancelar</button>
                       </form>

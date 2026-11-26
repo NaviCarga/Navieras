@@ -15,7 +15,8 @@ import {
 } from '../integraciones/evaluacionComercial';
 import { crearSistemaFlota, type SistemaFlota } from '../integraciones/sistemaFlota';
 import { asignarAgenteAReserva } from './asignacion';
-import { confirmarReserva, fechaHoy } from './inventario';
+import { agruparPorTipo, confirmarReserva, fechaHoy } from './inventario';
+import { evaluarSobrecupoViaje, ingresarAListaEspera, mensajeSobreTope } from './listaEspera';
 
 const PREFIJO_BOOKING = 'BK';
 const PATRON_CONTRATO = /^[A-Za-z0-9][A-Za-z0-9-]{3,29}$/;
@@ -36,9 +37,12 @@ export type ResultadoBooking =
       avisoAgente: string;
       notificacion: string;
     }
+  // HU-04 CA2: sin cupo y dentro del tope (al verificar o al revalidar)
+  | { tipo: 'lista_espera'; reserva: ReservaConDetalles; notificacion: string }
   | { tipo: 'rechazada_exportador'; reserva: ReservaConDetalles; motivo: string }
-  | { tipo: 'sin_cupo'; mensaje: string }
-  | { tipo: 'revalidacion_fallida'; reserva: ReservaConDetalles }
+  // HU-04 CA2: sin cupo y sobre el tope (registrada como "Rechazada", decisión confirmada 4)
+  | { tipo: 'rechazada_sobrecupo'; reserva: ReservaConDetalles; motivo: string }
+  | { tipo: 'revalidacion_fallida'; reserva: ReservaConDetalles; motivo: string }
   | { tipo: 'datos_invalidos'; errores: string[] };
 
 export function restarDias(fecha: string, dias: number): string {
@@ -58,17 +62,6 @@ export function generarCodigoBooking(db: BaseDatos, hoy: string = fechaHoy()): s
     )
     .get(prefijo.length + 1, `${prefijo}%`) as { maximo: number };
   return `${prefijo}${String(fila.maximo + 1).padStart(3, '0')}`;
-}
-
-function agruparCantidades(detalles: NuevoDetalleReserva[]): Map<string, number> {
-  const agrupados = new Map<string, number>();
-  for (const detalle of detalles) {
-    agrupados.set(
-      detalle.tipoContenedor,
-      (agrupados.get(detalle.tipoContenedor) ?? 0) + detalle.cantidadSolicitada,
-    );
-  }
-  return agrupados;
 }
 
 function validarDatos(db: BaseDatos, datos: DatosBooking): string[] {
@@ -108,48 +101,6 @@ function validarDatos(db: BaseDatos, datos: DatosBooking): string[] {
   }
 
   return errores;
-}
-
-function faltaCapacidad(
-  sistemaFlota: SistemaFlota,
-  viajeId: number,
-  agrupados: Map<string, number>,
-): { falta: boolean; mensaje: string } {
-  const capacidad = sistemaFlota.consultarCapacidad(viajeId);
-  if (!capacidad) {
-    return {
-      falta: true,
-      mensaje: 'No se encontró el viaje seleccionado en el Sistema Central de Flota.',
-    };
-  }
-
-  const total = Array.from(agrupados.values()).reduce((suma, cantidad) => suma + cantidad, 0);
-  const cupos = new Map(capacidad.cupos.map((cupo) => [cupo.tipoContenedor, cupo]));
-
-  for (const [tipo, cantidad] of agrupados) {
-    const cupo = cupos.get(tipo);
-    if (!cupo) {
-      return {
-        falta: true,
-        mensaje: `El viaje no ofrece cupos para contenedores ${tipo}.`,
-      };
-    }
-    if (cupo.cantidadDisponible < cantidad) {
-      return {
-        falta: true,
-        mensaje: `No hay cupo suficiente para ${cantidad} contenedores ${tipo}: quedan ${cupo.cantidadDisponible}.`,
-      };
-    }
-  }
-
-  if (capacidad.capacidadDisponibleTEU < total) {
-    return {
-      falta: true,
-      mensaje: `No hay capacidad suficiente en el viaje: quedan ${capacidad.capacidadDisponibleTEU} TEUs y se solicitaron ${total}.`,
-    };
-  }
-
-  return { falta: false, mensaje: '' };
 }
 
 function notificarConfirmacion(db: BaseDatos, reserva: ReservaConDetalles): string {
@@ -203,10 +154,14 @@ export function registrarBooking(
       return { tipo: 'datos_invalidos', errores: ['Seleccione un viaje disponible.'] };
     }
 
-    const agrupados = agruparCantidades(datos.detalles);
-    const capacidad = faltaCapacidad(sistemaFlota, datos.viajeId, agrupados);
-    if (capacidad.falta) {
-      return { tipo: 'sin_cupo', mensaje: capacidad.mensaje };
+    // DSS-02 «Verifica disponibilidad preliminar» con la regla de sobrecupo (HU-04 CA2)
+    const agrupados = agruparPorTipo(datos.detalles);
+    const evaluacion = evaluarSobrecupoViaje(db, sistemaFlota, datos.viajeId, agrupados);
+    if (!evaluacion) {
+      return {
+        tipo: 'datos_invalidos',
+        errores: ['No se encontró el viaje seleccionado en el Sistema Central de Flota.'],
+      };
     }
 
     const codigoBooking = generarCodigoBooking(db, hoy);
@@ -229,8 +184,24 @@ export function registrarBooking(
       })),
     };
 
-    const evaluacion = evaluacionComercial.validarExportador(empresa);
-    if (!evaluacion.aprobado) {
+    if (!evaluacion.cabe) {
+      if (evaluacion.dentroDelTope) {
+        // EST-01 detectarSobrecupo → "En lista de espera" (sin evaluación comercial ni descuento)
+        const creada = crearReserva(db, { ...base, estadoReserva: 'En lista de espera' });
+        const enEspera = ingresarAListaEspera(db, creada.id, evaluacion.exceso);
+        return {
+          tipo: 'lista_espera',
+          reserva: enEspera,
+          notificacion: `Su reserva ${enEspera.codigoBooking} quedó "En lista de espera" en la posición ${enEspera.posicionListaEspera}.`,
+        };
+      }
+      // EST-01 detectarSobrecupo → "Rechazada" (sobre el tope)
+      const rechazada = crearReserva(db, { ...base, estadoReserva: 'Rechazada' });
+      return { tipo: 'rechazada_sobrecupo', reserva: rechazada, motivo: mensajeSobreTope(evaluacion) };
+    }
+
+    const evaluacionExportador = evaluacionComercial.validarExportador(empresa);
+    if (!evaluacionExportador.aprobado) {
       const rechazada = crearReserva(db, {
         ...base,
         estadoReserva: 'Rechazada',
@@ -238,7 +209,7 @@ export function registrarBooking(
       return {
         tipo: 'rechazada_exportador',
         reserva: rechazada,
-        motivo: evaluacion.motivo ?? 'El exportador registra un bloqueo vigente.',
+        motivo: evaluacionExportador.motivo ?? 'El exportador registra un bloqueo vigente.',
       };
     }
 
@@ -247,12 +218,21 @@ export function registrarBooking(
       estadoReserva: 'Reserva temporal',
     });
 
+    // DSS-02 «Revalida disponibilidad al confirmar» (misma regla de sobrecupo)
     const confirmacion = confirmarReserva(db, temporal.id, sistemaFlota);
     if (confirmacion.tipo !== 'confirmada') {
+      if (confirmacion.tipo === 'lista_espera') {
+        return {
+          tipo: 'lista_espera',
+          reserva: confirmacion.reserva,
+          notificacion: `Al revalidar ya no había cupo: su reserva ${confirmacion.reserva.codigoBooking} quedó "En lista de espera" en la posición ${confirmacion.reserva.posicionListaEspera}.`,
+        };
+      }
       if (confirmacion.tipo === 'rechazada') {
         return {
           tipo: 'revalidacion_fallida',
           reserva: confirmacion.reserva,
+          motivo: mensajeSobreTope(confirmacion.evaluacion),
         };
       }
       throw new Error(

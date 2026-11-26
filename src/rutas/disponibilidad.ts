@@ -2,6 +2,8 @@ import { Router } from 'express';
 import type { BaseDatos } from '../db/conexion';
 import type { FiltrosDisponibilidad, ViajeConCupos } from '../dominio/tipos';
 import { crearSistemaFlota } from '../integraciones/sistemaFlota';
+import { fechaHoy } from '../servicios/inventario';
+import { cerrarListasPorZarpe } from '../servicios/listaEspera';
 
 export interface GrupoPorFecha {
   fecha: string;
@@ -33,6 +35,8 @@ export function crearRutaDisponibilidad(db: BaseDatos): Router {
 
   router.get('/disponibilidad', (req, res, next) => {
     try {
+      // HU-04 CA4: vencimiento perezoso de las listas de espera por zarpe
+      cerrarListasPorZarpe(db, fechaHoy());
       const filtros: FiltrosDisponibilidad = {
         origen: texto(req.query.origen),
         destino: texto(req.query.destino),

@@ -11,6 +11,8 @@ const PUERTOS = [
   { codigo: 'CNSHA', nombre: 'Shanghái', pais: 'China', zona: 'Asia-Pacífico' },
   { codigo: 'CLVAP', nombre: 'Valparaíso', pais: 'Chile', zona: 'Sudamérica' },
   { codigo: 'NLRTM', nombre: 'Rotterdam', pais: 'Países Bajos', zona: 'Europa' },
+  // ajuste-hu-04-lista-espera: destino de los viajes del Buque Austral (no se cruza con las rutas de HU-01)
+  { codigo: 'PECLL', nombre: 'Callao', pais: 'Perú', zona: 'Sudamérica' },
 ];
 
 const BUQUES = [
@@ -24,6 +26,13 @@ const BUQUES = [
     codigoIMO: 'IMO-9000002',
     nombre: 'Buque Pacífico',
     capacidadTotalTEU: 4000,
+    navieraOperadora: 'Naviera Guerrero',
+  },
+  {
+    // ajuste-hu-04-lista-espera: buque de 100 TEU → tope de sobrecupo de 3 TEU (HU-04 CA2, HU-02)
+    codigoIMO: 'IMO-9000003',
+    nombre: 'Buque Austral',
+    capacidadTotalTEU: 100,
     navieraOperadora: 'Naviera Guerrero',
   },
 ];
@@ -92,7 +101,7 @@ const VIAJES = [
   },
   {
     codigoViaje: 'VIA-004',
-    codigoIMO: 'IMO-9000002',
+    codigoIMO: 'IMO-9000003',
     origen: 'Valparaíso',
     destino: 'Shanghái',
     fechaZarpe: '2027-02-01',
@@ -120,6 +129,73 @@ const VIAJES = [
     capacidadDisponibleTEU: 15,
     estadoViaje: 'Programado',
   },
+  // ajuste-hu-04-lista-espera: viajes del Buque Austral (100 TEU) con capacidad disponible 0
+  // VIA-007: lista vacía (HU-04 «dentro del tope» y «sobre el tope»)
+  {
+    codigoViaje: 'VIA-007',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2027-05-10',
+    fechaArriboEstimada: '2027-05-14',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
+  // VIA-008: lista con 3 TEU (HU-04 «tope compartido»)
+  {
+    codigoViaje: 'VIA-008',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2027-05-15',
+    fechaArriboEstimada: '2027-05-19',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
+  // VIA-009: lista con 2 + 1 TEU (HU-04 «consulta en posición 2», HU-02 «cancelación en lista»)
+  {
+    codigoViaje: 'VIA-009',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2027-05-20',
+    fechaArriboEstimada: '2027-05-24',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
+  // VIA-010: confirmada 8 + espera 3 (HU-02 «confirmación desde la lista»)
+  {
+    codigoViaje: 'VIA-010',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2027-05-25',
+    fechaArriboEstimada: '2027-05-29',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
+  // VIA-011: confirmada 2 + espera 3 (HU-02 «el cupo liberado no alcanza»)
+  {
+    codigoViaje: 'VIA-011',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2027-05-30',
+    fechaArriboEstimada: '2027-06-03',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
+  // VIA-012: zarpe ya pasado con una reserva en espera (HU-04 «vence al llegar la fecha de zarpe»)
+  {
+    codigoViaje: 'VIA-012',
+    codigoIMO: 'IMO-9000003',
+    origen: 'San Antonio',
+    destino: 'Callao',
+    fechaZarpe: '2026-11-25',
+    fechaArriboEstimada: '2026-11-29',
+    capacidadDisponibleTEU: 0,
+    estadoViaje: 'Programado',
+  },
 ];
 
 const CUPOS = [
@@ -130,6 +206,12 @@ const CUPOS = [
   { codigoViaje: 'VIA-004', tipoContenedor: '20GP', cantidadTotal: 10, cantidadDisponible: 4 },
   { codigoViaje: 'VIA-005', tipoContenedor: '40HQ', cantidadTotal: 38, cantidadDisponible: 30 },
   { codigoViaje: 'VIA-006', tipoContenedor: '40HQ', cantidadTotal: 20, cantidadDisponible: 15 },
+  { codigoViaje: 'VIA-007', tipoContenedor: '20GP', cantidadTotal: 10, cantidadDisponible: 0 },
+  { codigoViaje: 'VIA-008', tipoContenedor: '20GP', cantidadTotal: 10, cantidadDisponible: 0 },
+  { codigoViaje: 'VIA-009', tipoContenedor: '20GP', cantidadTotal: 10, cantidadDisponible: 0 },
+  { codigoViaje: 'VIA-010', tipoContenedor: '20GP', cantidadTotal: 8, cantidadDisponible: 0 },
+  { codigoViaje: 'VIA-011', tipoContenedor: '20GP', cantidadTotal: 2, cantidadDisponible: 0 },
+  { codigoViaje: 'VIA-012', tipoContenedor: '20GP', cantidadTotal: 5, cantidadDisponible: 0 },
 ];
 
 const EMPRESAS = [
@@ -175,6 +257,9 @@ interface ReservaSeed {
     pesoEstimadoTon: number;
   }>;
   identificadorAgente?: string;
+  /** SobreReserva: solo para reservas "En lista de espera". */
+  posicionListaEspera?: number;
+  excesoSolicitadoTEU?: number;
 }
 
 const RESERVAS: ReservaSeed[] = [
@@ -195,12 +280,12 @@ const RESERVAS: ReservaSeed[] = [
     rutEmpresa: '77.222.222-2',
     codigoViaje: 'VIA-004',
     fechaSolicitud: '2026-11-02',
-    cantidadTEU: 6,
+    cantidadTEU: 10,
     tipoMercancia: 'Textiles',
     numeroContrato: 'CT-2026-002',
     plazoMaximoCancelacion: '2027-01-25',
     estadoReserva: 'Reserva temporal',
-    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 6, pesoEstimadoTon: 8 }],
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 10, pesoEstimadoTon: 8 }],
   },
   {
     codigoBooking: 'BK-HU02-003',
@@ -239,6 +324,117 @@ const RESERVAS: ReservaSeed[] = [
     estadoReserva: 'Confirmada',
     detalles: [{ tipoContenedor: '40HQ', cantidadSolicitada: 5, pesoEstimadoTon: 10 }],
     identificadorAgente: 'A-003',
+  },
+  // ajuste-hu-04-lista-espera
+  {
+    codigoBooking: 'BK-LE-001',
+    rutEmpresa: '77.222.222-2',
+    codigoViaje: 'VIA-008',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 3,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-101',
+    plazoMaximoCancelacion: '2027-05-08',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 3, pesoEstimadoTon: 6 }],
+    posicionListaEspera: 1,
+    excesoSolicitadoTEU: 3,
+  },
+  {
+    codigoBooking: 'BK-LE-002',
+    rutEmpresa: '76.111.111-1',
+    codigoViaje: 'VIA-009',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 2,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-102',
+    plazoMaximoCancelacion: '2026-01-01',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 2, pesoEstimadoTon: 4 }],
+    posicionListaEspera: 1,
+    excesoSolicitadoTEU: 2,
+  },
+  {
+    codigoBooking: 'BK-LE-003',
+    rutEmpresa: '78.333.333-3',
+    codigoViaje: 'VIA-009',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 1,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-103',
+    plazoMaximoCancelacion: '2027-05-13',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 1, pesoEstimadoTon: 2 }],
+    posicionListaEspera: 2,
+    excesoSolicitadoTEU: 1,
+  },
+  {
+    codigoBooking: 'BK-LE-004',
+    rutEmpresa: '76.111.111-1',
+    codigoViaje: 'VIA-010',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 8,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-104',
+    plazoMaximoCancelacion: '2027-05-18',
+    estadoReserva: 'Confirmada',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 8, pesoEstimadoTon: 16 }],
+    identificadorAgente: 'A-004',
+  },
+  {
+    codigoBooking: 'BK-LE-005',
+    rutEmpresa: '77.222.222-2',
+    codigoViaje: 'VIA-010',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 3,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-105',
+    plazoMaximoCancelacion: '2027-05-18',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 3, pesoEstimadoTon: 6 }],
+    posicionListaEspera: 1,
+    excesoSolicitadoTEU: 3,
+  },
+  {
+    codigoBooking: 'BK-LE-006',
+    rutEmpresa: '76.111.111-1',
+    codigoViaje: 'VIA-011',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 2,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-106',
+    plazoMaximoCancelacion: '2027-05-23',
+    estadoReserva: 'Confirmada',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 2, pesoEstimadoTon: 4 }],
+    identificadorAgente: 'A-004',
+  },
+  {
+    codigoBooking: 'BK-LE-007',
+    rutEmpresa: '78.333.333-3',
+    codigoViaje: 'VIA-011',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 3,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-107',
+    plazoMaximoCancelacion: '2027-05-23',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 3, pesoEstimadoTon: 6 }],
+    posicionListaEspera: 1,
+    excesoSolicitadoTEU: 3,
+  },
+  {
+    codigoBooking: 'BK-LE-008',
+    rutEmpresa: '77.222.222-2',
+    codigoViaje: 'VIA-012',
+    fechaSolicitud: '2026-11-20',
+    cantidadTEU: 3,
+    tipoMercancia: 'Carga general',
+    numeroContrato: 'CT-2026-108',
+    plazoMaximoCancelacion: '2026-11-18',
+    estadoReserva: 'En lista de espera',
+    detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 3, pesoEstimadoTon: 6 }],
+    posicionListaEspera: 1,
+    excesoSolicitadoTEU: 3,
   },
 ];
 
@@ -390,6 +586,17 @@ export function sembrar(db: BaseDatos): ResumenSeed {
           detalle.pesoEstimadoTon,
         );
       }
+    }
+    if (reserva.posicionListaEspera !== undefined) {
+      db.prepare(
+        `INSERT INTO sobre_reserva (reserva_id, posicion_lista_espera, exceso_solicitado_teu)
+         VALUES (?, ?, ?)
+         ON CONFLICT(reserva_id) DO NOTHING`,
+      ).run(
+        idReserva(reserva.codigoBooking),
+        reserva.posicionListaEspera,
+        reserva.excesoSolicitadoTEU ?? 0,
+      );
     }
     if (reserva.identificadorAgente) {
       db.prepare(

@@ -46,10 +46,14 @@ describe('HU-01', () => {
     expect(respuesta.text).toContain('Buque Pacífico');
     expect(respuesta.text).toContain('Valparaíso');
     expect(respuesta.text).toContain('Rotterdam');
+    // Entonces se informa que el viaje no cuenta con capacidad disponible para el tipo solicitado
     expect(respuesta.text).toContain('Sin capacidad disponible para 40RF');
-    expect(respuesta.text).toContain(
-      'No se habilita para nuevas solicitudes de reserva de ese tipo.',
-    );
+    // Y no se habilita la reserva directa con confirmación inmediata para ese tipo de contenedor
+    expect(respuesta.text).toContain('Sin confirmación inmediata para este tipo');
+    // Y una solicitud cuyo sobrecupo acumulado no supere el tope puede quedar "En lista de espera"
+    expect(respuesta.text).toContain('En lista de espera');
+    expect(respuesta.text).toContain('si no supera el tope de sobrecupo');
+    expect(respuesta.text).toContain('/booking?viaje=VIA-002');
     expect(respuesta.text).not.toContain('25 cupos 40RF');
 
     db.close();

@@ -10,7 +10,7 @@ describe('Seed de datos de ejemplo', () => {
     const primeraCarga = sembrar(db);
     const segundaCarga = sembrar(db);
 
-    expect(primeraCarga).toEqual({ viajes: 6, cupos: 7, reservas: 5 });
+    expect(primeraCarga).toEqual({ viajes: 12, cupos: 13, reservas: 13 });
     expect(segundaCarga).toEqual(primeraCarga);
 
     const cupos = db
@@ -62,6 +62,7 @@ describe('Seed de datos de ejemplo', () => {
                 (SELECT COUNT(*) FROM detalle_reserva d WHERE d.reserva_id = r.id) AS detalles
          FROM reserva r
          JOIN viaje v ON v.id = r.viaje_id
+         WHERE r.codigo_booking LIKE 'BK-HU0%'
          ORDER BY r.codigo_booking`,
       )
       .all() as Array<{
@@ -85,7 +86,7 @@ describe('Seed de datos de ejemplo', () => {
       {
         codigo_booking: 'BK-HU02-002',
         estado_reserva: 'Reserva temporal',
-        cantidad_teu: 6,
+        cantidad_teu: 10,
         codigo_viaje: 'VIA-004',
         capacidad_disponible_teu: 4,
         detalles: 1,
@@ -132,7 +133,7 @@ describe('Seed de datos de ejemplo', () => {
 
     const resumen = reiniciarDatos(db);
 
-    expect(resumen).toEqual({ viajes: 6, cupos: 7, reservas: 5 });
+    expect(resumen).toEqual({ viajes: 12, cupos: 13, reservas: 13 });
     expect(
       db.prepare('SELECT estado_reserva FROM reserva WHERE codigo_booking = ?').get('BK-HU02-001'),
     ).toEqual({ estado_reserva: 'Reserva temporal' });
@@ -141,6 +142,42 @@ describe('Seed de datos de ejemplo', () => {
         .prepare('SELECT capacidad_disponible_teu FROM viaje WHERE codigo_viaje = ?')
         .get('VIA-003'),
     ).toEqual({ capacidad_disponible_teu: 50 });
+
+    db.close();
+  });
+
+  it('carga el Buque Austral de 100 TEU y las listas de espera (ajuste-hu-04-lista-espera)', () => {
+    const db = crearConexion(':memory:');
+    sembrar(db);
+    sembrar(db); // idempotente
+
+    const buqueVia004 = db
+      .prepare(
+        `SELECT b.nombre, b.capacidad_total_teu AS total
+         FROM viaje v JOIN buque b ON b.id = v.buque_id
+         WHERE v.codigo_viaje = 'VIA-004'`,
+      )
+      .get();
+    expect(buqueVia004).toEqual({ nombre: 'Buque Austral', total: 100 });
+
+    const lista = db
+      .prepare(
+        `SELECT r.codigo_booking, v.codigo_viaje, v.capacidad_disponible_teu AS d,
+                sr.posicion_lista_espera AS posicion
+         FROM sobre_reserva sr
+         JOIN reserva r ON r.id = sr.reserva_id
+         JOIN viaje v ON v.id = r.viaje_id
+         ORDER BY r.codigo_booking`,
+      )
+      .all();
+    expect(lista).toEqual([
+      { codigo_booking: 'BK-LE-001', codigo_viaje: 'VIA-008', d: 0, posicion: 1 },
+      { codigo_booking: 'BK-LE-002', codigo_viaje: 'VIA-009', d: 0, posicion: 1 },
+      { codigo_booking: 'BK-LE-003', codigo_viaje: 'VIA-009', d: 0, posicion: 2 },
+      { codigo_booking: 'BK-LE-005', codigo_viaje: 'VIA-010', d: 0, posicion: 1 },
+      { codigo_booking: 'BK-LE-007', codigo_viaje: 'VIA-011', d: 0, posicion: 1 },
+      { codigo_booking: 'BK-LE-008', codigo_viaje: 'VIA-012', d: 0, posicion: 1 },
+    ]);
 
     db.close();
   });

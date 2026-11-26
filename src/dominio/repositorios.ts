@@ -86,6 +86,8 @@ interface FilaReserva {
   numero_contrato: string | null;
   plazo_maximo_cancelacion: string;
   estado_reserva: string;
+  posicion_lista_espera: number | null;
+  exceso_solicitado_teu: number | null;
   empresa_rut: string;
   empresa_razon_social: string;
   empresa_correo_contacto: string;
@@ -150,6 +152,8 @@ const SELECT_RESERVA = `
          r.numero_contrato,
          r.plazo_maximo_cancelacion,
          r.estado_reserva,
+         sr.posicion_lista_espera,
+         sr.exceso_solicitado_teu,
          e.rut AS empresa_rut,
          e.razon_social AS empresa_razon_social,
          e.correo_contacto AS empresa_correo_contacto,
@@ -182,6 +186,7 @@ const SELECT_RESERVA = `
   JOIN puerto po ON po.id = v.puerto_origen_id
   JOIN puerto pd ON pd.id = v.puerto_destino_id
   LEFT JOIN agente_operativo a ON a.id = r.agente_operativo_id
+  LEFT JOIN sobre_reserva sr ON sr.reserva_id = r.id
 `;
 
 function mapearBuque(fila: FilaBuque): Buque {
@@ -253,6 +258,8 @@ function mapearReserva(
     numeroContrato: fila.numero_contrato,
     plazoMaximoCancelacion: fila.plazo_maximo_cancelacion,
     estadoReserva: fila.estado_reserva,
+    posicionListaEspera: fila.posicion_lista_espera ?? null,
+    excesoSolicitadoTEU: fila.exceso_solicitado_teu ?? null,
     empresa: {
       id: fila.empresa_exportadora_id,
       rut: fila.empresa_rut,
@@ -659,4 +666,109 @@ export function listarNotificacionesDeAgente(
     )
     .all(agenteId) as FilaNotificacion[];
   return filas.map(mapearNotificacion);
+}
+
+// ---------------------------------------------------------------------------
+// ajuste-hu-04-lista-espera — SobreReserva y lista de espera (HU-04 CA2/CA3/CA4, HU-02, EST-01)
+// ---------------------------------------------------------------------------
+
+export function obtenerReservaPorCodigo(
+  db: BaseDatos,
+  codigoBooking: string,
+): ReservaConDetalles | undefined {
+  const fila = db
+    .prepare('SELECT id FROM reserva WHERE codigo_booking = ?')
+    .get(codigoBooking) as { id: number } | undefined;
+  return fila ? obtenerReserva(db, fila.id) : undefined;
+}
+
+/** E: suma de cantidadTEU de las reservas del viaje "En lista de espera". */
+export function teuEnListaEspera(db: BaseDatos, viajeId: number): number {
+  const fila = db
+    .prepare(
+      `SELECT COALESCE(SUM(cantidad_teu), 0) AS total
+       FROM reserva
+       WHERE viaje_id = ? AND estado_reserva = 'En lista de espera'`,
+    )
+    .get(viajeId) as { total: number };
+  return fila.total;
+}
+
+/** Registra la SobreReserva al final de la lista del viaje y devuelve su posición. */
+export function registrarSobreReserva(
+  db: BaseDatos,
+  reservaId: number,
+  excesoSolicitadoTEU: number,
+): number {
+  const reserva = db
+    .prepare('SELECT viaje_id FROM reserva WHERE id = ?')
+    .get(reservaId) as { viaje_id: number } | undefined;
+  if (!reserva) {
+    throw new Error(`No se encontró la reserva ${reservaId}.`);
+  }
+  const fila = db
+    .prepare(
+      `SELECT COALESCE(MAX(sr.posicion_lista_espera), 0) AS maximo
+       FROM sobre_reserva sr
+       JOIN reserva r ON r.id = sr.reserva_id
+       WHERE r.viaje_id = ? AND sr.reserva_id <> ?`,
+    )
+    .get(reserva.viaje_id, reservaId) as { maximo: number };
+  const posicion = fila.maximo + 1;
+  db.prepare(
+    `INSERT INTO sobre_reserva (reserva_id, posicion_lista_espera, exceso_solicitado_teu)
+     VALUES (?, ?, ?)
+     ON CONFLICT(reserva_id) DO UPDATE
+       SET posicion_lista_espera = excluded.posicion_lista_espera,
+           exceso_solicitado_teu = excluded.exceso_solicitado_teu`,
+  ).run(reservaId, posicion, Math.max(0, excesoSolicitadoTEU));
+  return posicion;
+}
+
+/** La reserva deja de figurar en la lista (se conserva la fila como historial). */
+export function salirDeLista(db: BaseDatos, reservaId: number): void {
+  db.prepare('UPDATE sobre_reserva SET posicion_lista_espera = NULL WHERE reserva_id = ?').run(
+    reservaId,
+  );
+}
+
+/** Renumera 1..n las posiciones del viaje conservando su orden relativo. */
+export function renumerarLista(db: BaseDatos, viajeId: number): void {
+  const filas = db
+    .prepare(
+      `SELECT sr.reserva_id
+       FROM sobre_reserva sr
+       JOIN reserva r ON r.id = sr.reserva_id
+       WHERE r.viaje_id = ? AND sr.posicion_lista_espera IS NOT NULL
+       ORDER BY sr.posicion_lista_espera, sr.reserva_id`,
+    )
+    .all(viajeId) as Array<{ reserva_id: number }>;
+  const actualizar = db.prepare(
+    'UPDATE sobre_reserva SET posicion_lista_espera = ? WHERE reserva_id = ?',
+  );
+  filas.forEach((fila, indice) => actualizar.run(indice + 1, fila.reserva_id));
+}
+
+/** Reservas "En lista de espera" del viaje, en orden de posición. */
+export function listarListaEspera(db: BaseDatos, viajeId: number): ReservaConDetalles[] {
+  const filas = db
+    .prepare(
+      `${SELECT_RESERVA}
+       WHERE r.viaje_id = ? AND r.estado_reserva = 'En lista de espera'
+       ORDER BY sr.posicion_lista_espera, r.id`,
+    )
+    .all(viajeId) as FilaReserva[];
+  const detalles = detallesPorReserva(db);
+  return filas.map((fila) => mapearReserva(fila, detalles.get(fila.id) ?? []));
+}
+
+export function capacidadTotalBuqueDeViaje(db: BaseDatos, viajeId: number): number | undefined {
+  const fila = db
+    .prepare(
+      `SELECT b.capacidad_total_teu AS total
+       FROM viaje v JOIN buque b ON b.id = v.buque_id
+       WHERE v.id = ?`,
+    )
+    .get(viajeId) as { total: number } | undefined;
+  return fila?.total;
 }

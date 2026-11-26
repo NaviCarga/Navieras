@@ -182,7 +182,15 @@
         <div class="aviso ok"><%= aviso %></div>
       <% } %>
 
-      <% if (reserva.estadoReserva !== 'Confirmada') { %>
+      <% if (reserva.estadoReserva === 'En lista de espera') { %>
+        <%# HU-04 CA2/CA3: estado y posición en la lista de espera %>
+        <div class="aviso pendiente">
+          Su reserva quedó en estado "En lista de espera" en la posición
+          <strong><%= reserva.posicionListaEspera %></strong> de la lista de espera del viaje.
+          No tiene cupo comprometido: se confirmará automáticamente si se libera cupo suficiente
+          antes del zarpe; si el buque zarpa sin cupo, quedará "Vencida".
+        </div>
+      <% } else if (reserva.estadoReserva !== 'Confirmada') { %>
         <div class="aviso pendiente">
           La reserva no está confirmada. Estado actual: <%= reserva.estadoReserva %>.
         </div>
@@ -194,7 +202,7 @@
             <span class="codigo"><%= reserva.codigoBooking %></span>
             <p>Naviera Guerrero · Booking de carga</p>
           </div>
-          <span class="estado <%= reserva.estadoReserva.toLowerCase().replace(' ', '-') %>">
+          <span class="estado <%= reserva.estadoReserva.toLowerCase().replaceAll(' ', '-') %>">
             <%= reserva.estadoReserva %>
           </span>
         </div>
@@ -241,6 +249,12 @@
             <dt>Cantidad total</dt>
             <dd><%= reserva.cantidadTEU %> TEUs</dd>
           </div>
+          <% if (reserva.posicionListaEspera !== null) { %>
+            <div>
+              <dt>Posición en la lista de espera</dt>
+              <dd>Posición <%= reserva.posicionListaEspera %></dd>
+            </div>
+          <% } %>
           <div>
             <dt>Agente operativo</dt>
             <dd>
@@ -274,6 +288,7 @@
       </article>
 
       <div class="acciones">
+        <a href="/booking/estado?codigo=<%= encodeURIComponent(reserva.codigoBooking) %>">Consultar el estado de esta reserva</a>
         <a href="/booking">Solicitar otra reserva</a>
         <a href="/disponibilidad">Volver a la disponibilidad</a>
       </div>

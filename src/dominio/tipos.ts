@@ -112,7 +112,13 @@ export interface Reserva {
   numeroContrato: string | null;
   plazoMaximoCancelacion: string;
   estadoReserva: string;
+  /** SobreReserva.posicionListaEspera (null si no está en la lista). */
+  posicionListaEspera: number | null;
+  /** SobreReserva.excesoSolicitadoTEU (null si nunca fue SobreReserva). */
+  excesoSolicitadoTEU: number | null;
 }
+
+export const ESTADO_LISTA_ESPERA = 'En lista de espera';
 
 export interface ReservaConDetalles extends Reserva {
   empresa: EmpresaExportadora;

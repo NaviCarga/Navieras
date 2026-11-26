@@ -4,9 +4,13 @@ import {
   consultarDisponibilidad,
   listarEmpresas,
   obtenerReserva,
+  obtenerReservaPorCodigo,
 } from '../dominio/repositorios';
 import type { NuevoDetalleReserva, ReservaConDetalles } from '../dominio/tipos';
+import { crearSistemaFlota } from '../integraciones/sistemaFlota';
 import { registrarBooking } from '../servicios/booking';
+import { cancelarReserva, fechaHoy } from '../servicios/inventario';
+import { cerrarListasPorZarpe } from '../servicios/listaEspera';
 
 const CANTIDAD_LINEAS = 3;
 const TIPOS_CONTENEDOR = ['20GP', '40HQ', '40RF'];
@@ -95,6 +99,16 @@ function renderizarComprobante(
 export function crearRutaBooking(db: BaseDatos): Router {
   const router = Router();
 
+  // HU-04 CA4: vencimiento perezoso de las listas de espera al cargar /booking, /booking/estado y el comprobante
+  router.get(['/booking', '/booking/estado', '/booking/:id/comprobante'], (_req, _res, next) => {
+    try {
+      cerrarListasPorZarpe(db, fechaHoy());
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get('/booking', (req, res, next) => {
     try {
       const viajes = consultarDisponibilidad(db, {});
@@ -138,8 +152,14 @@ export function crearRutaBooking(db: BaseDatos): Router {
         case 'datos_invalidos':
           renderizarFormulario(res, db, valores, { errores: resultado.errores });
           return;
-        case 'sin_cupo':
-          renderizarFormulario(res, db, valores, { rechazo: resultado.mensaje });
+        case 'lista_espera':
+          // HU-04 CA2: se informa estado y posición en el comprobante
+          res.redirect(`/booking/${resultado.reserva.id}/comprobante`);
+          return;
+        case 'rechazada_sobrecupo':
+          renderizarFormulario(res, db, valores, {
+            rechazo: `La solicitud ${resultado.reserva.codigoBooking} quedó en estado "Rechazada". ${resultado.motivo} No se descontaron cupos del viaje.`,
+          });
           return;
         case 'rechazada_exportador':
           renderizarFormulario(res, db, valores, {
@@ -148,8 +168,7 @@ export function crearRutaBooking(db: BaseDatos): Router {
           return;
         case 'revalidacion_fallida':
           renderizarFormulario(res, db, valores, {
-            rechazo:
-              'Ya no existe capacidad disponible para la carga al momento de confirmar. La reserva quedó "Rechazada".',
+            rechazo: `Ya no existe capacidad disponible para la carga al momento de confirmar. La reserva ${resultado.reserva.codigoBooking} quedó "Rechazada". ${resultado.motivo}`,
           });
           return;
         case 'confirmada':
@@ -174,6 +193,56 @@ export function crearRutaBooking(db: BaseDatos): Router {
         return;
       }
       renderizarComprobante(res, reserva);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // CU-07 — Consultar estado de una reserva (HU-04 CA3)
+  router.get('/booking/estado', (req, res, next) => {
+    try {
+      const codigo = texto(req.query.codigo);
+      const mensajeQuery = texto(req.query.mensaje);
+      const reserva = codigo ? obtenerReservaPorCodigo(db, codigo) : undefined;
+      let mensaje = mensajeQuery || undefined;
+      let error = req.query.error === '1';
+      if (codigo && !reserva) {
+        mensaje = `No existe una reserva con el código ${codigo}.`;
+        error = true;
+      }
+      res.render('estado-reserva', { codigo, reserva, mensaje, error });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // HU-02 «Cancelar reserva en lista de espera» (exportador; sin plazo máximo)
+  router.post('/booking/:id/cancelar', (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const reserva = Number.isInteger(id) && id > 0 ? obtenerReserva(db, id) : undefined;
+      if (!reserva) {
+        res.status(404).send('Reserva no encontrada.');
+        return;
+      }
+      const volver = (mensaje: string, error = false) => {
+        const parametros = new URLSearchParams({ codigo: reserva.codigoBooking, mensaje });
+        if (error) parametros.set('error', '1');
+        res.redirect(`/booking/estado?${parametros.toString()}`);
+      };
+      if (reserva.estadoReserva !== 'En lista de espera') {
+        volver(
+          `Solo se pueden cancelar desde aquí las reservas "En lista de espera"; su estado actual es "${reserva.estadoReserva}".`,
+          true,
+        );
+        return;
+      }
+      const resultado = cancelarReserva(db, id, crearSistemaFlota(db));
+      if (resultado.tipo === 'cancelada_lista_espera') {
+        volver(`Reserva ${reserva.codigoBooking} cancelada: dejó la lista de espera del viaje.`);
+        return;
+      }
+      volver(`No se pudo cancelar la reserva ${reserva.codigoBooking}.`, true);
     } catch (error) {
       next(error);
     }

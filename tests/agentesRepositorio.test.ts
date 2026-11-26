@@ -47,7 +47,8 @@ describe('Repositorio de agentes operativos', () => {
     expect(carla?.reservasActivasActuales).toBe(1);
 
     const diego = obtenerAgente(db, agentes.find((a) => a.identificadorEmpleado === 'A-004')!.id);
-    expect(diego?.reservasActivasActuales).toBe(1);
+    // BK-HU02-003 + BK-LE-004 + BK-LE-006 (ajuste-hu-04-lista-espera)
+    expect(diego?.reservasActivasActuales).toBe(3);
 
     db.close();
   });

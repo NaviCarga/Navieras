@@ -158,3 +158,32 @@ describe('Migración 002', () => {
     db.close();
   });
 });
+
+describe('Migración 005 (ajuste-hu-04-lista-espera)', () => {
+  it('crea sobre_reserva, se registra y mantiene buque.capacidad_total_teu', () => {
+    const db = crearConexion(':memory:');
+
+    const migraciones = db.prepare('SELECT nombre FROM schema_migrations').all() as Array<{
+      nombre: string;
+    }>;
+    expect(migraciones).toContainEqual({ nombre: '005_crear_sobre_reserva.sql' });
+
+    const columnas = (
+      db.prepare("PRAGMA table_info('sobre_reserva')").all() as Array<{ name: string }>
+    ).map((fila) => fila.name);
+    expect(columnas).toEqual(['reserva_id', 'posicion_lista_espera', 'exceso_solicitado_teu']);
+
+    const columnasBuque = (
+      db.prepare("PRAGMA table_info('buque')").all() as Array<{ name: string }>
+    ).map((fila) => fila.name);
+    expect(columnasBuque.filter((nombre) => nombre === 'capacidad_total_teu')).toHaveLength(1);
+
+    const claves = db.prepare("PRAGMA foreign_key_list('sobre_reserva')").all() as Array<{
+      table: string;
+      on_delete: string;
+    }>;
+    expect(claves).toContainEqual(expect.objectContaining({ table: 'reserva', on_delete: 'CASCADE' }));
+
+    db.close();
+  });
+});

@@ -45,6 +45,7 @@ describe('SistemaFlotaSimulado', () => {
 
     const capacidad = sistema.consultarCapacidad(viaje.id);
     expect(capacidad?.capacidadDisponibleTEU).toBe(viaje.capacidad_disponible_teu);
+    expect(capacidad?.capacidadTotalTEU).toBe(5000);
     expect(capacidad?.cupos).toHaveLength(1);
 
     sistema.registrarAsignacion(viaje.id, 1, [{ tipoContenedor: '40HQ', cantidad: 2 }]);
@@ -60,6 +61,7 @@ describe('SistemaFlotaSimulado', () => {
       'Liberar cupos',
     ]);
     expect(logs[0].resultado).toContain('Retornar capacidad disponible');
+    expect(logs[0].resultado).toContain('capacidad total del buque 5000 TEUs');
     expect(logs[1].resultado).toBe('Confirmar asignación');
     expect(logs[2].resultado).toBe('Cupos reincorporados');
 

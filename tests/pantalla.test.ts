@@ -39,7 +39,8 @@ describe('Pantalla de disponibilidad', () => {
 
     expect(respuesta.status).toBe(200);
     expect(respuesta.text).toContain('Sin capacidad disponible para 40RF');
-    expect(respuesta.text).toContain('No se habilita para nuevas solicitudes');
+    expect(respuesta.text).toContain('Sin confirmación inmediata para este tipo');
+    expect(respuesta.text).not.toContain('No se habilita para nuevas solicitudes');
 
     db.close();
   });

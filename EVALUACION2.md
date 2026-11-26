@@ -74,3 +74,14 @@ Otras decisiones tomadas al corregir:
 
 - **Código Booking.** Se asigna al registrar la reserva en lista de espera, porque R4 dice que lo "conserva" al confirmarse.
 - **Modelo de dominio.** Con la herencia, una reserva que entra a la lista de espera es una `SobreReserva` y lo sigue siendo después de confirmarse (sin posición en la lista). Así se evita que un objeto "cambie de clase". Falta confirmar con el profesor.
+
+Supuestos y limitaciones de la implementación (cambio de OpenSpec `ajuste-hu-04-lista-espera`):
+
+- **D efectiva.** D_efectiva = min(`Viaje.capacidadDisponibleTEU`, suma de `cantidadDisponible` de los tipos solicitados). Es un supuesto propio: no está en los artefactos.
+- **Vencimiento por zarpe perezoso.** Se procesa al cargar `/disponibilidad`, `/reservas`, `/booking`, `/booking/estado` y el comprobante, más un botón de la Naviera. No hay cron.
+- **Una confirmación por cancelación.** Al cancelarse una reserva se confirma solo una de la lista de espera, aunque el cupo liberado alcance para más.
+- **Posición en la lista.** Se asigna por orden de llegada a la lista, no por `fechaSolicitud`.
+- **Sin evaluación comercial desde la lista.** Una reserva confirmada desde la lista de espera no pasa por la evaluación comercial.
+- **Escenarios de prueba adicionales.** Dos escenarios de las pruebas no existen en 07-criterios-aceptacion.md: "Se confirma la primera reserva de la lista que cabe completa" y "Confirmación con capacidad insuficiente dentro del tope pasa a lista de espera".
+- **Cambio de dependencia ajeno a los requisitos.** `better-sqlite3` pasó de `^13.0.3` a `^12.11.1` porque no hay binario precompilado de la 13 para Node 24.
+- **Cambio de datos de ejemplo.** VIA-004 pasa al buque de 100 TEU, BK-HU02-002 sube a 10 TEU y se agregan viajes nuevos hacia Callao.

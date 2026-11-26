@@ -1,5 +1,10 @@
 import type { BaseDatos } from '../db/conexion';
-import { consultarDisponibilidad, listarCuposPorViaje, listarViajes } from '../dominio/repositorios';
+import {
+  capacidadTotalBuqueDeViaje,
+  consultarDisponibilidad,
+  listarCuposPorViaje,
+  listarViajes,
+} from '../dominio/repositorios';
 import type {
   CupoContenedor,
   FiltrosDisponibilidad,
@@ -10,6 +15,8 @@ const NOMBRE_SISTEMA = 'Sistema Central de Flota (ERP Naviero)';
 
 export interface CapacidadViaje {
   capacidadDisponibleTEU: number;
+  /** Buque.capacidadTotalTEU: base del tope de sobrecupo (HU-04 CA2). */
+  capacidadTotalTEU: number;
   cupos: CupoContenedor[];
 }
 
@@ -60,12 +67,13 @@ export class SistemaFlotaSimulado implements SistemaFlota {
     }
 
     const cupos = listarCuposPorViaje(this.db, viajeId);
+    const capacidadTotalTEU = capacidadTotalBuqueDeViaje(this.db, viajeId) ?? 0;
     this.registrar(
       'Consultar disponibilidad preliminar',
       { viajeId },
-      `Retornar capacidad disponible (${viaje.capacidadDisponibleTEU} TEUs)`,
+      `Retornar capacidad disponible (${viaje.capacidadDisponibleTEU} TEUs; capacidad total del buque ${capacidadTotalTEU} TEUs)`,
     );
-    return { capacidadDisponibleTEU: viaje.capacidadDisponibleTEU, cupos };
+    return { capacidadDisponibleTEU: viaje.capacidadDisponibleTEU, capacidadTotalTEU, cupos };
   }
 
   registrarAsignacion(

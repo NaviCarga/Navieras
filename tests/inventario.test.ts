@@ -89,7 +89,7 @@ describe('Inventario: confirmar reserva', () => {
     db.prepare(
       `INSERT INTO detalle_reserva (reserva_id, tipo_contenedor, cantidad_solicitada, peso_estimado_ton)
        VALUES (?, ?, ?, ?)`,
-    ).run(reservaId, '20GP', 100, 1);
+    ).run(reservaId, '20GP', 300, 1); // sobrecupo 260 > tope 150 (Buque Andino, 5000 TEU)
 
     const resultado = confirmarReserva(db, reservaId);
 

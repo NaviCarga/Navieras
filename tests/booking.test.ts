@@ -123,28 +123,59 @@ describe('validación de la solicitud de booking', () => {
     db.close();
   });
 
-  it('informa falta de cupo sin descontar inventario ni registrar la reserva', () => {
-    const db = baseConDatos();
+  // ajuste-hu-04-lista-espera: VIA-004 usa el Buque Austral (100 TEU, tope 3) y tiene D = 4
+  function solicitarEnVia004(db: BaseDatos, cantidad: number) {
     const { activa, sinCupo } = ids(db);
-    const antes = capacidad(db, sinCupo.id);
-    const reservasAntes = contarReservas(db);
-
-    const resultado = registrarBooking(
+    return registrarBooking(
       db,
       {
         empresaExportadoraId: activa.id,
         viajeId: sinCupo.id,
         tipoMercancia: 'Textiles',
         numeroContrato: 'CT-2026-200',
-        detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: 6, pesoEstimadoTon: 8 }],
+        detalles: [{ tipoContenedor: '20GP', cantidadSolicitada: cantidad, pesoEstimadoTon: 8 }],
       },
       crearSistemaFlota(db),
       crearEvaluacionComercial(db),
       HOY,
     );
+  }
 
-    expect(resultado.tipo).toBe('sin_cupo');
-    expect(contarReservas(db)).toBe(reservasAntes);
+  it('sin cupo y dentro del tope: registra "En lista de espera" sin descontar inventario', () => {
+    const db = baseConDatos();
+    const { sinCupo } = ids(db);
+    const antes = capacidad(db, sinCupo.id);
+    const reservasAntes = contarReservas(db);
+
+    const resultado = solicitarEnVia004(db, 6); // sobrecupo 2 ≤ tope 3
+
+    expect(resultado.tipo).toBe('lista_espera');
+    if (resultado.tipo === 'lista_espera') {
+      expect(resultado.reserva.estadoReserva).toBe('En lista de espera');
+      expect(resultado.reserva.posicionListaEspera).toBe(1);
+      expect(resultado.reserva.excesoSolicitadoTEU).toBe(2);
+      expect(resultado.reserva.codigoBooking).toMatch(/^BK-2026-\d{3}$/);
+    }
+    expect(contarReservas(db)).toBe(reservasAntes + 1);
+    expect(capacidad(db, sinCupo.id)).toEqual(antes);
+    db.close();
+  });
+
+  it('sin cupo y sobre el tope: registra "Rechazada" sin descontar inventario', () => {
+    const db = baseConDatos();
+    const { sinCupo } = ids(db);
+    const antes = capacidad(db, sinCupo.id);
+    const reservasAntes = contarReservas(db);
+
+    const resultado = solicitarEnVia004(db, 8); // sobrecupo 4 > tope 3
+
+    expect(resultado.tipo).toBe('rechazada_sobrecupo');
+    if (resultado.tipo === 'rechazada_sobrecupo') {
+      expect(resultado.reserva.estadoReserva).toBe('Rechazada');
+      expect(resultado.reserva.posicionListaEspera).toBeNull();
+      expect(resultado.motivo).toContain('supera el tope de sobrecupo');
+    }
+    expect(contarReservas(db)).toBe(reservasAntes + 1);
     expect(capacidad(db, sinCupo.id)).toEqual(antes);
     db.close();
   });
@@ -181,8 +212,7 @@ describe('rechazo por bloqueo comercial del exportador', () => {
 });
 
 describe('revalidación de disponibilidad antes de confirmar', () => {
-  it('rechaza la reserva si el cupo se agotó después de la verificación preliminar', () => {
-    const db = baseConDatos();
+  function revalidarSinCupo(db: BaseDatos, capacidadTotalTEU: number) {
     const { activa, viaje } = ids(db);
     const antes = capacidad(db, viaje.id);
     const real = crearSistemaFlota(db);
@@ -198,6 +228,7 @@ describe('revalidación de disponibilidad antes de confirmar', () => {
         const capacidadViaje = real.consultarCapacidad(viajeId)!;
         return {
           capacidadDisponibleTEU: 0,
+          capacidadTotalTEU,
           cupos: capacidadViaje.cupos.map((cupo) => ({ ...cupo, cantidadDisponible: 0 })),
         };
       },
@@ -220,11 +251,32 @@ describe('revalidación de disponibilidad antes de confirmar', () => {
     );
 
     expect(llamadas).toBeGreaterThanOrEqual(2);
+    return { resultado, antes, despues: capacidad(db, viaje.id) };
+  }
+
+  it('deja la reserva "En lista de espera" si el cupo se agotó al revalidar y cabe en el tope', () => {
+    const db = baseConDatos();
+    const { resultado, antes, despues } = revalidarSinCupo(db, 5000); // tope 150 ≥ 5
+
+    expect(resultado.tipo).toBe('lista_espera');
+    if (resultado.tipo === 'lista_espera') {
+      expect(resultado.reserva.estadoReserva).toBe('En lista de espera');
+      expect(resultado.reserva.posicionListaEspera).toBe(1);
+    }
+    expect(despues).toEqual(antes);
+    db.close();
+  });
+
+  it('rechaza la reserva si el cupo se agotó al revalidar y supera el tope', () => {
+    const db = baseConDatos();
+    const { resultado, antes, despues } = revalidarSinCupo(db, 100); // tope 3 < 5
+
     expect(resultado.tipo).toBe('revalidacion_fallida');
     if (resultado.tipo === 'revalidacion_fallida') {
       expect(resultado.reserva.estadoReserva).toBe('Rechazada');
+      expect(resultado.motivo).toContain('supera el tope de sobrecupo');
     }
-    expect(capacidad(db, viaje.id)).toEqual(antes);
+    expect(despues).toEqual(antes);
     db.close();
   });
 });

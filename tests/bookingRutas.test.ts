@@ -10,6 +10,9 @@ function appConDatos() {
   return { app: crearApp(db), db };
 }
 
+// Reservas cargadas por el seed (5 de HU-02/HU-03 + 8 de ajuste-hu-04-lista-espera)
+const totalReservasSeed = 13;
+
 function datosValidos(campos: Record<string, string> = {}): Record<string, string> {
   return {
     empresaId: '1',
@@ -61,21 +64,40 @@ describe('HU-04 · rutas de booking', () => {
     expect(respuesta.text).toContain('Revisa los datos de la solicitud');
     expect(respuesta.text).toContain('Indique el tipo de mercancía');
     const total = db.prepare('SELECT COUNT(*) AS total FROM reserva').get() as { total: number };
-    expect(total.total).toBe(5);
+    expect(total.total).toBe(totalReservasSeed);
   });
 
-  it('informa la falta de cupo sin crear la reserva', async () => {
+  // ajuste-hu-04-lista-espera: VIA-004 (id 4) usa el Buque Austral (100 TEU, tope 3) y tiene D = 4
+  it('informa el rechazo por tope de sobrecupo y registra la reserva "Rechazada"', async () => {
     const { app, db } = appConDatos();
+
+    const respuesta = await request(app)
+      .post('/booking')
+      .type('form')
+      .send(datosValidos({ viajeId: '4', cantidad1: '10' }));
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.text).toContain('supera el tope de sobrecupo del viaje');
+    const total = db.prepare('SELECT COUNT(*) AS total FROM reserva').get() as { total: number };
+    expect(total.total).toBe(totalReservasSeed + 1);
+    expect(db.prepare('SELECT estado_reserva FROM reserva ORDER BY id DESC LIMIT 1').get()).toEqual({
+      estado_reserva: 'Rechazada',
+    });
+  });
+
+  it('redirige al comprobante con la posición cuando la solicitud queda en lista de espera', async () => {
+    const { app } = appConDatos();
 
     const respuesta = await request(app)
       .post('/booking')
       .type('form')
       .send(datosValidos({ viajeId: '4', cantidad1: '6' }));
 
-    expect(respuesta.status).toBe(200);
-    expect(respuesta.text).toContain('No hay cupo suficiente');
-    const total = db.prepare('SELECT COUNT(*) AS total FROM reserva').get() as { total: number };
-    expect(total.total).toBe(5);
+    expect(respuesta.status).toBe(302);
+    const comprobante = await request(app).get(respuesta.headers.location!);
+    expect(comprobante.text).toContain('En lista de espera');
+    expect(comprobante.text).toContain('Posición en la lista de espera');
+    expect(comprobante.text).toContain('Posición 1');
   });
 
   it('redirige al comprobante cuando la reserva queda confirmada', async () => {

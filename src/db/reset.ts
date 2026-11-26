@@ -3,6 +3,7 @@ import { sembrar, type ResumenSeed } from './seed';
 
 const TABLAS = [
   'notificacion',
+  'sobre_reserva',
   'detalle_reserva',
   'reserva',
   'cupo_contenedor',
