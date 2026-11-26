@@ -17,7 +17,8 @@ Característica:Consulta de disponibilidad de espacio e itinerarios de buques
     Y el buque tiene 0 cupos disponibles para contenedores refrigerados de tipo "40RF"
     Cuando el exportador consulta la disponibilidad entre "Valparaíso" y "Rotterdam" para contenedores "40RF"
     Entonces se informa que el viaje no cuenta con capacidad disponible para el tipo de contenedor solicitado
-    Y no se habilita el viaje para nuevas solicitudes de reserva de ese tipo de contenedor
+    Y no se habilita la reserva directa con confirmación inmediata para ese tipo de contenedor
+    Y una solicitud cuyo sobrecupo acumulado no supere el tope de sobrecupo puede quedar "En lista de espera"
 ```
  
 ## HU-02 — Actualización automática del inventario de espacio por reservas
@@ -64,6 +65,17 @@ Característica: Sincronización automática del inventario de espacio del buque
     Cuando la reserva "Confirmada" de 2 TEUs cambia su estado a "Cancelada"
     Entonces la capacidad disponible del viaje aumenta automáticamente a 2 TEUs
     Y la reserva de 3 TEUs se mantiene en estado "En lista de espera" en la posición 1
+
+  Escenario: Cancelación de una reserva en lista de espera
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs y su capacidad disponible es de 0 TEUs
+    Y existe una reserva "En lista de espera" de 2 TEUs en la posición 1 de la lista de espera del viaje
+    Y existe otra reserva "En lista de espera" de 1 TEU en la posición 2
+    Y la fecha de cancelación es posterior al plazo máximo de cancelación de la reserva de 2 TEUs
+    Cuando el exportador cancela la reserva de 2 TEUs ("Cancelar reserva en lista de espera")
+    Entonces la reserva de 2 TEUs cambia su estado a "Cancelada" sin aplicar el plazo máximo de cancelación
+    Y la reserva de 2 TEUs deja de figurar en la lista de espera y de contar para el tope de sobrecupo del viaje
+    Y la reserva de 1 TEU pasa a la posición 1 de la lista de espera
+    Y la capacidad disponible del viaje se mantiene en 0 TEUs
 ```
 ## HU-03 — Asignación automática de agente operativo a reserva confirmada
 Historia: Como administrador de la naviera, quiero que se asigne automáticamente un agente operativo a cargo de cada reserva confirmada, para agilizar la gestión interna y asegurar un responsable directo para el exportador.
