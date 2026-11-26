@@ -21,7 +21,7 @@ Característica:Consulta de disponibilidad de espacio e itinerarios de buques
 ```
  
 ## HU-02 — Actualización automática del inventario de espacio por reservas
- Historia:Como naviera, quiero que se actualice automáticamente la disponibilidad de espacio de los buques ante cada confirmación o cancelación de reserva, para reflejar de forma inmediata el cupo real y evitar sobreventas.
+Historia: Como naviera, quiero que se actualicen automáticamente las disponibilidades de espacio en buques en el calendario, para reflejar de forma inmediata las nuevas reservas confirmadas y evitar errores de inventario de espacio.
  
 ```gherkin
 Característica: Sincronización automática del inventario de espacio del buque
@@ -33,10 +33,12 @@ Característica: Sincronización automática del inventario de espacio del buque
     Entonces la capacidad disponible del viaje se reduce automáticamente a 40 TEUs
     Y el cupo de 10 TEUs queda comprometido y asociado a la reserva confirmada
 
-  Escenario: Rechazo de confirmación de reserva por capacidad insuficiente (prevención de sobreventa)
-    Dado que un viaje programado cuenta únicamente con 4 TEUs de capacidad disponible
-    Cuando se intenta confirmar una solicitud de reserva por 6 TEUs para ese mismo viaje
-    Entonces se rechaza la confirmación de la reserva por falta de capacidad en el buque
+  Escenario: Rechazo de confirmación de reserva por capacidad insuficiente sobre el tope de sobrecupo
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs
+    Y el viaje cuenta únicamente con 4 TEUs de capacidad disponible
+    Y no existen reservas "En lista de espera" para ese viaje
+    Cuando se intenta confirmar una solicitud de reserva por 10 TEUs para ese mismo viaje
+    Entonces se rechaza la confirmación de la reserva porque el sobrecupo acumulado de 6 TEUs supera el tope de sobrecupo de 3 TEUs
     Y la capacidad disponible del viaje se mantiene en 4 TEUs sin alteraciones
 
   Escenario: Restitución automática de cupo por cancelación dentro del plazo permitido
@@ -44,6 +46,24 @@ Característica: Sincronización automática del inventario de espacio del buque
     Y existe una reserva "Confirmada" de 8 TEUs cuyo zarpe se encuentra dentro del plazo permitido de anulación
     Cuando la reserva cambia su estado a "Cancelada"
     Entonces la capacidad disponible del viaje aumenta automáticamente a 38 TEUs
+
+  Escenario: Confirmación desde lista de espera al liberarse cupo por cancelación
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs y su capacidad disponible es de 0 TEUs
+    Y existe una reserva "Confirmada" de 8 TEUs cuyo zarpe se encuentra dentro del plazo permitido de anulación
+    Y existe una reserva "En lista de espera" de 3 TEUs en la posición 1 de la lista de espera del viaje
+    Cuando la reserva "Confirmada" de 8 TEUs cambia su estado a "Cancelada"
+    Entonces la reserva de 3 TEUs cambia su estado a "Confirmada" conservando su código de reserva (Booking)
+    Y la capacidad disponible del viaje queda en 5 TEUs
+    Y se asigna automáticamente un agente operativo a la reserva confirmada
+    Y la reserva deja de figurar en la lista de espera y de contar para el tope de sobrecupo del viaje
+
+  Escenario: Reserva en lista de espera se mantiene si el cupo liberado no alcanza
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs y su capacidad disponible es de 0 TEUs
+    Y existe una reserva "Confirmada" de 2 TEUs cuyo zarpe se encuentra dentro del plazo permitido de anulación
+    Y existe una reserva "En lista de espera" de 3 TEUs en la posición 1 de la lista de espera del viaje
+    Cuando la reserva "Confirmada" de 2 TEUs cambia su estado a "Cancelada"
+    Entonces la capacidad disponible del viaje aumenta automáticamente a 2 TEUs
+    Y la reserva de 3 TEUs se mantiene en estado "En lista de espera" en la posición 1
 ```
 ## HU-03 — Asignación automática de agente operativo a reserva confirmada
 Historia: Como administrador de la naviera, quiero que se asigne automáticamente un agente operativo a cargo de cada reserva confirmada, para agilizar la gestión interna y asegurar un responsable directo para el exportador.
@@ -80,4 +100,45 @@ Característica: Procesamiento y confirmación de solicitud de reserva de espaci
     Cuando el exportador registra una solicitud de reserva de espacio
     Entonces la solicitud de reserva cambia a estado "Rechazada"
     Y se informa al exportador el motivo del rechazo sin descontar cupos del inventario del viaje
+
+  Escenario: Solicitud dentro del tope de sobrecupo queda en lista de espera
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs
+    Y la capacidad disponible del viaje es de 0 TEUs
+    Y no existen reservas "En lista de espera" para ese viaje
+    Cuando el exportador registra una solicitud de reserva por 3 TEUs para ese viaje
+    Entonces la reserva se registra en estado "En lista de espera" con un código único de reserva (Booking)
+    Y la reserva queda en la posición 1 de la lista de espera del viaje
+    Y la capacidad disponible del viaje se mantiene en 0 TEUs
+    Y se informa al exportador el estado "En lista de espera" y su posición
+
+  Escenario: Solicitud sobre el tope de sobrecupo se rechaza automáticamente
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs
+    Y la capacidad disponible del viaje es de 0 TEUs
+    Y no existen reservas "En lista de espera" para ese viaje
+    Cuando el exportador registra una solicitud de reserva por 4 TEUs para ese viaje
+    Entonces la solicitud de reserva cambia a estado "Rechazada"
+    Y se informa al exportador que la solicitud supera el tope de sobrecupo del viaje
+    Y la capacidad disponible del viaje se mantiene en 0 TEUs sin descontar cupos
+
+  Escenario: Solicitud rechazada por tope de sobrecupo compartido con la lista de espera
+    Dado que un viaje programado usa un buque con capacidad total de 100 TEUs
+    Y la capacidad disponible del viaje es de 0 TEUs
+    Y existe una reserva "En lista de espera" de 3 TEUs para ese viaje
+    Cuando otro exportador registra una solicitud de reserva por 1 TEU para ese viaje
+    Entonces la solicitud de reserva cambia a estado "Rechazada" porque el sobrecupo acumulado de 4 TEUs supera el tope de sobrecupo de 3 TEUs
+    Y la reserva de 3 TEUs se mantiene "En lista de espera" en la posición 1
+    Y la capacidad disponible del viaje se mantiene en 0 TEUs sin descontar cupos
+
+  Escenario: Consulta del estado y la posición de una reserva en lista de espera
+    Dado que el exportador tiene una reserva en estado "En lista de espera" en la posición 2 de la lista de espera de un viaje
+    Cuando el exportador consulta el estado de su reserva
+    Entonces se muestra el estado "En lista de espera"
+    Y se muestra la posición 2 en la lista de espera del viaje
+
+  Escenario: Reserva en lista de espera vence al llegar la fecha de zarpe
+    Dado que el exportador tiene una reserva "En lista de espera" de 3 TEUs en un viaje con capacidad disponible de 0 TEUs
+    Cuando llega la fecha de zarpe del viaje sin que se haya liberado cupo suficiente para la reserva
+    Entonces la reserva cambia a estado "Vencida"
+    Y la reserva deja de figurar en la lista de espera del viaje
+    Y se notifica al exportador que su reserva quedó "Vencida" por el zarpe del viaje
 ```
