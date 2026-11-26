@@ -59,19 +59,23 @@ class Reserva #DDF2E3 {
   estadoReserva
 }
 
+note right of Reserva
+  Valores de estadoReserva (EST-01):
+  Recibida, Validando, Revisión manual,
+  Verificando disponibilidad, Reserva temporal,
+  Procesando, Revalidando, Confirmada,
+  En lista de espera, Rechazada, Vencida, Cancelada
+end note
+
 class DetalleReserva #DDF2E3 {
   tipoContenedor
   cantidadSolicitada
   pesoEstimadoTon
 }
-class SobreReserva #DDF2E3{
-  codigoBooking
-  fechaSolicitud
-  cantidadTEU
-  tipoMercancia
-  plazoMaximoCancelacion
-  estadoReserva
+
+class SobreReserva #DDF2E3 {
   posicionListaEspera
+  excesoSolicitadoTEU
 }
 
 ' =========================
@@ -109,7 +113,7 @@ Viaje "1" -- "0..*" Reserva : concentra
 
 Reserva "1" *-- "1..*" DetalleReserva : contiene
 
-Reserva "1" *-- "1..*"  SobreReserva 
+SobreReserva --|> Reserva
 
 EmpresaExportadora "1" -- "0..*" Reserva : solicita
 
