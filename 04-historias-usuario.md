@@ -22,6 +22,7 @@ Como naviera, quiero que se actualicen automáticamente las disponibilidades de 
 * CA1: Al aprobarse o confirmarse una reserva, el sistema descuenta automáticamente la cantidad de TEUs o espacios reservados del cupo total del buque.
 * CA2: Si una reserva es cancelada dentro del plazo permitido, el espacio liberado se reincorpora automáticamente al calendario web de disponibilidad.
 * CA3: Cuando una cancelación libera cupo, el sistema revisa la lista de espera del viaje en orden de llegada (`fechaSolicitud` / `posicionListaEspera`). La primera reserva "En lista de espera" cuyo total de TEU quepa completo en la capacidad disponible pasa a "Confirmada": descuenta capacidad, conserva su código Booking, se le asigna un agente operativo (HU-03), deja de contar para el tope de sobrecupo y se actualizan las posiciones de las reservas que siguen en la lista. Si el cupo liberado no alcanza para la reserva completa, esta sigue "En lista de espera".
+* CA4: El exportador puede cancelar una reserva "En lista de espera" (evento "Cancelar reserva en lista de espera"). La reserva pasa a "Cancelada" sin aplicar el plazo máximo de cancelación, se quita de la lista de espera, se actualizan las posiciones de las reservas que siguen en la lista y deja de contar para el tope de sobrecupo. Como no tenía capacidad ni cupos descontados, la capacidad disponible del viaje no cambia.
 
 ## HU-03
 
