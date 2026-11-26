@@ -13,7 +13,7 @@ Como exportador, al ingresar a la pagina quiero acceso a un calendario que me mu
 
 ## HU-02
 
-Como naviera, quiero que se actualicen automaticamente las disponibilidades de espacio en buques en el calendario, para reflejar de forma inmediata las nuevas reservas confirmadas y evitar errores de inventario de espacio.
+Como naviera, quiero que se actualicen automáticamente las disponibilidades de espacio en buques en el calendario, para reflejar de forma inmediata las nuevas reservas confirmadas y evitar errores de inventario de espacio.
 
 **Actividad TO-BE asociada:** Sincronización automática del inventario de espacios (Allocation Management) con cada reserva procesada por el sistema.
 
@@ -21,6 +21,7 @@ Como naviera, quiero que se actualicen automaticamente las disponibilidades de e
 
 * CA1: Al aprobarse o confirmarse una reserva, el sistema descuenta automáticamente la cantidad de TEUs o espacios reservados del cupo total del buque.
 * CA2: Si una reserva es cancelada dentro del plazo permitido, el espacio liberado se reincorpora automáticamente al calendario web de disponibilidad.
+* CA3: Cuando una cancelación libera cupo, el sistema revisa la lista de espera del viaje en orden de llegada (`fechaSolicitud` / `posicionListaEspera`). La primera reserva "En lista de espera" cuyo total de TEU quepa completo en la capacidad disponible pasa a "Confirmada": descuenta capacidad, conserva su código Booking, se le asigna un agente operativo (HU-03), deja de contar para el tope de sobrecupo y se actualizan las posiciones de las reservas que siguen en la lista. Si el cupo liberado no alcanza para la reserva completa, esta sigue "En lista de espera".
 
 ## HU-03
 
@@ -41,4 +42,6 @@ Como Exportador, quiero solicitar una reserva de espacio para mi carga en un via
 
 **Criterios de aceptación:**
 - CA1: El usuario puede seleccionar la fecha del viaje en el calendario, ingresar la cantidad de contenedores (TEUs) y asociar su número de contrato vigente.
-- CA2: El sistema debe validar que la cantidad de peso de carga solicitada no supere la capacidad disponible del buque con una tolerancia de hasta un 3% de sobrecarga ;En caso de exceso se rechazara de manera automática, se confirma la reserva si hay espacio suficiente y si existe una sobrecargar se dejara en estado "En lista de espera" al cliente.
+- CA2: El sistema valida la cantidad solicitada en TEU (q) contra la capacidad disponible del viaje (D = `Viaje.capacidadDisponibleTEU`). Si q ≤ D, la reserva sigue el flujo normal y se confirma. Si q > D, el sistema calcula el sobrecupo acumulado = E + (q − D), donde E es el total de TEU de las reservas que ya están "En lista de espera" en ese viaje, y lo compara con el tope de sobrecupo (3% de la capacidad total, `Buque.capacidadTotalTEU`; el límite es inclusivo, es decir, el total comprometido máximo es el 103% de la capacidad total). Si el sobrecupo acumulado ≤ tope de sobrecupo, la reserva queda en estado "En lista de espera", sin descontar capacidad ni cupos. Si el sobrecupo acumulado > tope de sobrecupo, la solicitud se rechaza automáticamente (estado "Rechazada"), sin descontar cupos. La regla se aplica en la verificación preliminar de disponibilidad y en la revalidación previa a la confirmación. Ejemplo: con capacidad total de 100 TEU y el viaje lleno (D = 0), una solicitud de 3 TEU queda "En lista de espera" y una de 4 TEU se rechaza; si ya hay 3 TEU en lista de espera, una solicitud de 1 TEU más se rechaza.
+- CA3: El exportador puede consultar el estado de su reserva. Si está "En lista de espera", el sistema muestra ese estado y la posición de la reserva en la lista de espera del viaje.
+- CA4: Si llega la fecha de zarpe del viaje (`Viaje.fechaZarpe`) y la reserva sigue "En lista de espera" porque no se liberó cupo suficiente, la reserva pasa a estado "Vencida", sale de la lista de espera y se notifica al exportador.
