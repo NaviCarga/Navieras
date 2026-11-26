@@ -2,21 +2,27 @@
 @startuml
 title EST-01 - Ciclo de vida de una Reserva (Booking)
 
-[*] --> Recibida : enviar solicitud
+state "Revisión manual" as RevisionManual
+state "Verificando disponibilidad" as VerificandoDisponibilidad
+state "Reserva temporal" as ReservaTemporal
+state "En lista de espera" as EnListaEspera
 
-Recibida --> Validando : iniciar validación
+[*] --> Recibida : Enviar solicitud\n/ registrar solicitud
 
-Validando --> RevisionManual : datos inconsistentes
-Validando --> Rechazada : contrato inválido
-Validando --> VerificandoDisponibilidad : datos válidos
+Recibida --> Validando : Iniciar validación\n/ validar datos y contrato
 
-RevisionManual --> Validando : encargado corrige solicitud
-RevisionManual --> Rechazada : solicitud no aprobada
+Validando --> RevisionManual : Detectar inconsistencia\n[datos inconsistentes]\n/ derivar a revisión manual
+Validando --> Rechazada : Detectar contrato inválido\n[contrato inválido]\n/ informar rechazo
+Validando --> VerificandoDisponibilidad : Validación correcta\n[datos válidos]\n/ consultar disponibilidad
 
-VerificandoDisponibilidad --> Rechazada : no existe disponibilidad
-VerificandoDisponibilidad --> ReservaTemporal : hay disponibilidad\n/ bloquear espacio temporalmente
+RevisionManual --> Validando : Corregir solicitud\n[encargado corrige solicitud]\n/ revalidar
+RevisionManual --> Rechazada : No aprobar solicitud\n[solicitud no aprobada]\n/ informar rechazo
 
-ReservaTemporal --> Procesando : iniciar tarifa y asignación
+VerificandoDisponibilidad --> ReservaTemporal : Encontrar cupos\n[capacidad suficiente]\n/ bloquear espacio temporalmente
+VerificandoDisponibilidad --> EnListaEspera : Detectar sobrecupo\n[sobrecupo acumulado ≤ tope de sobrecupo]\n/ registrar posición en la lista
+VerificandoDisponibilidad --> Rechazada : Detectar sobrecupo\n[sobrecupo acumulado > tope de sobrecupo]\n/ informar rechazo
+
+ReservaTemporal --> Procesando : Iniciar procesamiento\n/ procesar tarifa y asignación
 
 state Procesando {
   state "Definición de tarifa" as Tarifa
@@ -29,14 +35,19 @@ state Procesando {
   Asignacion --> [*] : asignación calculada
 }
 
-Procesando --> Revalidando : tarifa y asignación listas
+Procesando --> Revalidando : Finalizar procesos\n[tarifa y asignación listas]\n/ revalidar disponibilidad
 
-Revalidando --> Confirmada : disponibilidad vigente\n/ registrar asignación y BL
-Revalidando --> Rechazada : disponibilidad insuficiente
+Revalidando --> Confirmada : Confirmar disponibilidad\n[capacidad vigente]\n/ registrar asignación y BL
+Revalidando --> EnListaEspera : Detectar sobrecupo\n[sobrecupo acumulado ≤ tope de sobrecupo]\n/ liberar espacio temporal y registrar posición
+Revalidando --> Rechazada : Detectar sobrecupo\n[sobrecupo acumulado > tope de sobrecupo]\n/ liberar espacio temporal e informar rechazo
 
-ReservaTemporal --> Vencida : vence el plazo sin confirmación\n/ liberar espacio y notificar
+ReservaTemporal --> Vencida : Vencer plazo\n[sin confirmación]\n/ liberar espacio y notificar
 
-Confirmada --> Cancelada : cancelar dentro del plazo\n/ liberar espacio
+Confirmada --> Cancelada : Cancelar reserva\n[dentro del plazo]\n/ liberar espacio
+
+EnListaEspera --> Confirmada : Liberar cupo por cancelación\n[cabe completa y es la primera en la lista]\n/ Confirmar desde lista de espera\n(descontar capacidad y asignar agente)
+EnListaEspera --> Cancelada : Cancelar reserva en lista de espera\n/ quitar de la lista y actualizar posiciones
+EnListaEspera --> Vencida : Cerrar lista de espera por zarpe\n[llega la fecha de zarpe del viaje (Viaje.fechaZarpe)\ny no se liberó cupo suficiente]\n/ quitar de la lista, notificar al exportador\ny actualizar posiciones
 
 Confirmada --> [*]
 Rechazada --> [*]
