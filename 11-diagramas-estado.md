@@ -60,9 +60,10 @@ Archivo fuente: [`./diagramas/est-02.puml`](./diagramas/est-02.puml)
 |---|---|---|---|---|
 | Inicial | Inicializar inventario | — | Registrar cantidad disponible | Disponible |
 | Disponible | Crear reserva temporal | Cupos suficientes | Descontar temporalmente cupos | Reservado temporalmente |
+| Disponible | Confirmar desde lista de espera | Cupos suficientes | Descontar cupos y registrar asignación | Comprometido |
 | Reservado temporalmente | Confirmar Booking | Reserva validada | Registrar asignación | Comprometido |
 | Reservado temporalmente | Vencer plazo | Sin confirmación | Liberar cupos | Disponible |
 | Reservado temporalmente | Cancelar solicitud | — | Liberar cupos | Disponible |
 | Comprometido | Cancelar reserva | Dentro del plazo | Reincorporar cupos | Disponible |
 
-**EST-02 sin cambios por la lista de espera.** Una reserva "En lista de espera" no descuenta ni bloquea cupos (HU-04 CA2), así que `CupoContenedor` no necesita un estado nuevo. El cupo que libera una cancelación sigue la transición existente "Comprometido → Disponible". Pendiente de confirmar (ver Sección 3 de EVALUACION2.md): cuando una reserva se confirma desde la lista de espera, el cupo pasa a comprometido sin pasar por "Reservado temporalmente", y EST-02 no muestra esa ruta directa "Disponible → Comprometido".
+**Cómo afecta la lista de espera a EST-02.** El cambio sí afecta a EST-02, aunque no agrega estados. Una reserva "En lista de espera" no descuenta ni bloquea cupos (HU-04 CA2), así que `CupoContenedor` sigue con los estados Disponible, Reservado temporalmente y Comprometido. El cupo que libera una cancelación usa la transición existente "Comprometido → Disponible". Pero cuando una reserva se confirma desde la lista de espera (HU-02 CA3, CU-08 y la acción "Confirmar desde lista de espera" de EST-01), el cupo pasa a comprometido **sin pasar por "Reservado temporalmente"**. Sin la transición "Disponible → Comprometido" ("Confirmar desde lista de espera" [cupos suficientes]) esa confirmación no estaría modelada y el sistema la rechazaría. Una reserva "En lista de espera" que se cancela ("Cancelar reserva en lista de espera") o vence por zarpe no tiene efecto en EST-02, porque no tenía cupos descontados.

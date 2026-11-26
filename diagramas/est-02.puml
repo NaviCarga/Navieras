@@ -6,6 +6,8 @@ title EST-02 - Ciclo de vida de un CupoContenedor
 
 Disponible --> ReservadoTemporalmente : crear reserva temporal\n[cantidad disponible suficiente]\n/ descontar temporalmente cupos
 
+Disponible --> Comprometido : Confirmar desde lista de espera\n[cupos suficientes]\n/ descontar cupos y registrar asignación
+
 ReservadoTemporalmente --> Comprometido : confirmar Booking\n/ registrar asignación
 
 ReservadoTemporalmente --> Disponible : vencer plazo\n/ liberar cupos y notificar
